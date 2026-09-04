@@ -249,9 +249,9 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 
 /* ---------- print ---------- */
 @media print{
-  @page{size:A4;margin:13mm 14mm}
+  @page{size:A4;margin:12mm 13mm}
   body{background:#fff}
-  .app,.ovbar{display:none !important}
+  .app,.ovbar,#toast,#sheet{display:none !important}
   #overlay{display:block;position:static;background:#fff;overflow:visible}
   .ovstage{padding:0;display:block}
   #paper{
@@ -260,7 +260,12 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   }
   #paper thead{display:table-header-group}
   #paper tr{break-inside:avoid}
+  #paper tbody tr.sub{break-before:avoid}
+  #paper .rekap{break-inside:avoid;break-before:avoid}
+  #paper .terbilang-doc{break-inside:avoid;break-before:avoid}
   #paper .ttd,#paper .snk{break-inside:avoid}
+  #paper .ttd{margin-top:18pt}
+  #paper .foot{break-before:avoid}
 }
 </style>
 </head>
@@ -910,10 +915,17 @@ function buatDokumen(){
 
 /* ========== pratinjau & cetak ========== */
 const ov=document.getElementById('overlay');
+function siapCetak(){
+  const t=document.getElementById('toast');
+  if(t)t.classList.remove('on');
+  const s=document.getElementById('sheet');
+  if(s)s.classList.remove('on');
+  buatDokumen();
+}
 document.getElementById('btnPratinjau').onclick=()=>{buatDokumen();ov.classList.add('on');window.scrollTo(0,0)};
 document.getElementById('ovClose').onclick=()=>ov.classList.remove('on');
-document.getElementById('btnCetak').onclick=()=>{buatDokumen();ov.classList.add('on');setTimeout(()=>window.print(),120)};
-document.getElementById('ovPrint').onclick=()=>{buatDokumen();setTimeout(()=>window.print(),80)};
+document.getElementById('btnCetak').onclick=()=>{siapCetak();ov.classList.add('on');setTimeout(()=>window.print(),150)};
+document.getElementById('ovPrint').onclick=()=>{siapCetak();setTimeout(()=>window.print(),120)};
 
 /* ========== dokumen Word (.doc, bisa diedit di Word) ========== */
 function dokumenWord(){
