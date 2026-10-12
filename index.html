@@ -551,7 +551,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 <div id="arsip" class="sheet">
   <div class="sheet-box">
     <h2>Riwayat RAB</h2>
-    <p class="hint">Tersimpan langsung di browser perangkat ini, tanpa perlu mengunduh file. Kosong kalau riwayat browser dibersihkan.</p>
+    <p class="hint">RAB masuk ke sini otomatis setiap kali Bapak mencetak, mengunduh Word, atau menyimpan file. Tersimpan di browser perangkat ini dan kosong kalau riwayat browser dibersihkan.</p>
     <div class="tools">
       <button id="arsipSimpan" class="primary">Simpan RAB ini ke riwayat</button>
       <button id="arsipTutup" class="ghost">Tutup</button>
@@ -1202,10 +1202,10 @@ document.getElementById('btnPratinjau').onclick=()=>{
 };
 document.getElementById('ovClose').onclick=()=>ov.classList.remove('on');
 document.getElementById('btnCetak').onclick=()=>{
-  siapCetak();ov.classList.add('on');sesuaikanHalaman();setTimeout(()=>window.print(),150);
+  arsipOtomatis();siapCetak();ov.classList.add('on');sesuaikanHalaman();setTimeout(()=>window.print(),150);
 };
 document.getElementById('ovPrint').onclick=()=>{
-  siapCetak();sesuaikanHalaman();setTimeout(()=>window.print(),120);
+  arsipOtomatis();siapCetak();sesuaikanHalaman();setTimeout(()=>window.print(),120);
 };
 
 /* ========== dokumen Word (.doc, bisa diedit di Word) ========== */
@@ -1407,12 +1407,15 @@ async function unduh(teks,nama,mime,cadangan){
 }
 
 function simpanFile(){
+  arsipOtomatis();
   const teks=JSON.stringify(S,null,2);
   unduh(teks,namaFile()+'.json','application/json',teks);
 }
 document.getElementById('btnSimpan').onclick=simpanFile;
-document.getElementById('btnWord').onclick=()=>
+document.getElementById('btnWord').onclick=()=>{
+  arsipOtomatis();
   unduh(dokumenWord(),namaFile()+'.doc','application/msword');
+};
 
 document.getElementById('btnMuat').onclick=()=>document.getElementById('fileIn').click();
 document.getElementById('fileIn').addEventListener('change',e=>{
@@ -1444,7 +1447,7 @@ function renderArsip(){
   arsipList.innerHTML=arsip.map(a=>`<div class="arsip-item" data-id="${a.id}">
     <div class="t">
       <b>${esc(a.nama)}</b>
-      <small>${esc(a.klien||'tanpa klien')} · ${rp(a.total)} · ${waktuSingkat(a.waktu)}</small>
+      <small>${a.jenis==='invoice'?'Invoice':'RAB'} · ${esc(a.klien||'tanpa klien')} · ${rp(a.total)} · ${waktuSingkat(a.waktu)}</small>
     </div>
     <button class="tiny" data-buka="${a.id}">Buka</button>
     <button class="tiny ghost" data-hapus="${a.id}">✕</button>
@@ -1454,7 +1457,7 @@ function simpanKeArsip(){
   const nama=(S.d.proyek||'').trim()||'Tanpa judul';
   const h=hitung();
   const entri={id:uid(),nama,klien:S.d.klien||'',nomor:S.d.nomor||'',
-               total:h.total,waktu:new Date().toISOString(),data:JSON.stringify(S)};
+               total:h.total,jenis:S.jenis,waktu:new Date().toISOString(),data:JSON.stringify(S)};
   const idx=arsip.findIndex(a=>a.nama.toLowerCase()===nama.toLowerCase()&&a.nomor===entri.nomor);
   if(idx>=0){
     if(!confirm('“'+nama+'” sudah ada di riwayat. Timpa dengan versi sekarang?'))return;
@@ -1464,6 +1467,27 @@ function simpanKeArsip(){
   arsip=arsip.slice(0,40);
   tulisArsip();renderArsip();
   toast('“'+nama+'” tersimpan di riwayat.');
+}
+/* simpan otomatis: dipanggil setiap kali dokumen dibuat (cetak, Word, simpan file).
+   RAB dengan nama pekerjaan dan nomor yang sama diperbarui di tempat, tanpa duplikat. */
+const layakArsip=()=>S.items.some(it=>(it.nama||'').trim()||num(it.modal)||num(it.jual));
+let tKedip;
+function kedipRiwayat(){
+  const b=document.getElementById('btnArsip');
+  b.textContent='Riwayat ✓';
+  clearTimeout(tKedip);tKedip=setTimeout(()=>{b.textContent='Riwayat'},2400);
+}
+function arsipOtomatis(){
+  if(!layakArsip())return;
+  const nama=(S.d.proyek||'').trim()||'Tanpa judul';
+  const h=hitung();
+  const entri={id:uid(),nama,klien:S.d.klien||'',nomor:S.d.nomor||'',
+               total:h.total,jenis:S.jenis,waktu:new Date().toISOString(),data:JSON.stringify(S)};
+  const idx=arsip.findIndex(a=>a.nama.toLowerCase()===nama.toLowerCase()&&a.nomor===entri.nomor);
+  if(idx>=0){entri.id=arsip[idx].id;arsip.splice(idx,1)}
+  arsip.unshift(entri);
+  arsip=arsip.slice(0,40);
+  tulisArsip();renderArsip();kedipRiwayat();
 }
 document.getElementById('btnArsip').onclick=()=>{renderArsip();arsipEl.classList.add('on')};
 document.getElementById('arsipTutup').onclick=()=>arsipEl.classList.remove('on');
