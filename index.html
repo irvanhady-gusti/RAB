@@ -151,6 +151,11 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .sheet-box h2{margin:0 0 2px;font-size:17px;font-weight:600}
 .sheet-box p.hint{margin:0;color:var(--muted);font-size:13px;line-height:1.45}
 .sheet-box textarea{min-height:210px;font-size:12.5px;line-height:1.45;font-family:ui-monospace,'SF Mono',Menlo,monospace;margin-top:12px}
+.arsip-item{display:flex;gap:10px;align-items:center;padding:11px 2px;border-bottom:1px solid var(--line-soft)}
+.arsip-item .t{flex:1;min-width:0}
+.arsip-item .t b{display:block;font-weight:600;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.arsip-item .t small{color:var(--muted);font-size:12.5px}
+#arsipList{margin-top:14px;max-height:46vh;overflow:auto}
 #toast{
   position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(140%);
   z-index:65;display:flex;align-items:center;gap:12px;max-width:min(560px,92vw);
@@ -201,6 +206,8 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 #paper .rekap td{padding:5px 8px;border-bottom:1px solid #DCE2E8}
 #paper .rekap tr.grand td{border-top:2px solid #15191F;border-bottom:0;font-size:12pt;font-weight:700;padding-top:8px}
 #paper .terbilang-doc{margin-top:10px;font-size:9.4pt;font-style:italic;color:#2A323B;border-left:3px solid #15191F;padding-left:9px}
+#paper .bank{margin-top:11px;border:1px solid #15191F;padding:7px 10px;font-size:9.5pt;line-height:1.5}
+#paper .bank b{font-size:9.2pt;letter-spacing:.03em}
 #paper .snk{margin-top:18px;font-size:9.4pt}
 #paper .snk h3{margin:0 0 6px;font-size:10pt;font-weight:700}
 #paper .snk ol{margin:0;padding-left:18px}
@@ -210,6 +217,47 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 #paper .ttd .nm{margin-top:22mm;font-weight:600;border-top:1px solid #15191F;padding-top:5px}
 #paper .ttd .jb{color:#55636F;font-size:9pt}
 #paper .foot{margin-top:16px;border-top:1px solid #DCE2E8;padding-top:7px;font-size:8.4pt;color:#6B7785;text-align:center}
+
+/* tingkat kerapatan dokumen — dipilih otomatis agar isi muat sedikit halaman */
+#paper[data-rapat="1"] .judul{margin:11px 0 3px}
+#paper[data-rapat="1"] .subjudul{margin-bottom:11px}
+#paper[data-rapat="1"] .meta{gap:4px 26px;margin-bottom:11px}
+#paper[data-rapat="1"] .pengantar{margin-bottom:10px}
+#paper[data-rapat="1"] table{font-size:9.4pt}
+#paper[data-rapat="1"] tbody td{padding:4.5px 7px}
+#paper[data-rapat="1"] .rekap{margin-top:10px}
+#paper[data-rapat="1"] .rekap td{padding:4px 8px}
+#paper[data-rapat="1"] .terbilang-doc{margin-top:8px}
+#paper[data-rapat="1"] .snk{margin-top:12px}
+#paper[data-rapat="1"] .ttd{margin-top:16px}
+#paper[data-rapat="1"] .ttd .nm{margin-top:17mm}
+#paper[data-rapat="1"] .foot{margin-top:12px}
+
+#paper[data-rapat="2"]{font-size:9.6pt}
+#paper[data-rapat="2"] .kop h1{font-size:17pt}
+#paper[data-rapat="2"] .judul{font-size:12.5pt;margin:8px 0 2px}
+#paper[data-rapat="2"] .subjudul{margin-bottom:8px}
+#paper[data-rapat="2"] .meta{gap:3px 24px;margin-bottom:9px;font-size:9.4pt}
+#paper[data-rapat="2"] .pengantar{margin-bottom:8px;font-size:9.4pt}
+#paper[data-rapat="2"] table{font-size:8.9pt}
+#paper[data-rapat="2"] thead th{padding:5px 7px}
+#paper[data-rapat="2"] tbody td{padding:3.5px 6px}
+#paper[data-rapat="2"] .spekline{font-size:8.2pt}
+#paper[data-rapat="2"] .rekap{margin-top:8px}
+#paper[data-rapat="2"] .rekap td{padding:3px 7px}
+#paper[data-rapat="2"] .rekap tr.grand td{font-size:11pt}
+#paper[data-rapat="2"] .terbilang-doc{margin-top:7px;font-size:9pt}
+#paper[data-rapat="2"] .snk{margin-top:10px;font-size:8.9pt}
+#paper[data-rapat="2"] .ttd{margin-top:11px}
+#paper[data-rapat="2"] .ttd .nm{margin-top:13mm}
+#paper[data-rapat="2"] .foot{margin-top:9px}
+
+/* pembungkus halaman: tidak boleh memengaruhi gaya isi */
+#paper table.pg{font-size:inherit !important;width:100%}
+#paper table.pg > tbody > tr > td,
+#paper table.pg > thead > tr > td,
+#paper table.pg > tfoot > tr > td{padding:0 !important;border:0 !important;background:none}
+.pg-sp{height:0}
 
 /* ---------- responsive ---------- */
 @media (max-width:1080px){
@@ -249,13 +297,13 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 
 /* ---------- print ---------- */
 @media print{
-  @page{size:A4;margin:12mm 13mm}
+  @page{size:A4;margin:0}
   body{background:#fff}
-  .app,.ovbar,#toast,#sheet{display:none !important}
+  .app,.ovbar,#toast,.sheet{display:none !important}
   #overlay{display:block;position:static;background:#fff;overflow:visible}
   .ovstage{padding:0;display:block}
   #paper{
-    width:auto;min-height:0;padding:0;box-shadow:none;
+    width:auto;min-height:0;padding:0 13mm;box-shadow:none;
     font-size:9.8pt;
   }
   #paper thead{display:table-header-group}
@@ -265,7 +313,8 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   #paper .terbilang-doc{break-inside:avoid;break-before:avoid}
   #paper .ttd,#paper .snk{break-inside:avoid}
   #paper .ttd{margin-top:18pt}
-  #paper .foot{break-before:avoid}
+  #paper table.pg > tbody > tr{break-inside:auto}
+  .pg-sp{height:12mm}
 }
 </style>
 </head>
@@ -274,6 +323,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 <div class="app">
 <header class="bar">
   <div class="brand"><b>Penyusun RAB</b><em id="brandCo">Galaxy Computer</em></div>
+  <button id="btnArsip" class="ghost">Riwayat</button>
   <button id="btnMuat" class="ghost">Muat file</button>
   <input type="file" id="fileIn" accept="application/json" hidden>
   <button id="btnSimpan" class="ghost">Simpan file</button>
@@ -339,15 +389,57 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
       <h2>Identitas dokumen</h2>
       <p class="hint">Bagian ini muncul di kop dan kepala surat.</p>
       <div class="fields">
+        <label><span class="lbl">Jenis dokumen</span>
+          <select id="f_jenis">
+            <option value="rab">RAB / Penawaran</option>
+            <option value="invoice">Invoice / Tagihan</option>
+          </select>
+        </label>
         <label><span class="lbl">Nomor RAB</span><input id="f_nomor"></label>
         <label><span class="lbl">Tanggal</span><input type="date" id="f_tanggal"></label>
         <label><span class="lbl">Kepada (nama klien / instansi)</span><input id="f_klien"></label>
         <label><span class="lbl">Up. / kontak person</span><input id="f_kontak"></label>
         <label><span class="lbl">Nama pekerjaan</span><input id="f_proyek"></label>
         <label><span class="lbl">Lokasi</span><input id="f_lokasi"></label>
+        <label><span class="lbl">Kerapatan cetak</span>
+          <select id="f_rapat">
+            <option value="auto">Otomatis — muatkan sesedikit mungkin halaman</option>
+            <option value="0">Normal</option>
+            <option value="1">Rapat</option>
+            <option value="2">Sangat rapat</option>
+          </select>
+        </label>
       </div>
       <label style="margin-top:12px;display:block"><span class="lbl">Kalimat pengantar</span>
         <textarea id="f_pengantar" style="min-height:60px"></textarea></label>
+    </section>
+
+    <!-- INVOICE -->
+    <section class="card" id="cardInv" hidden>
+      <h2>Data invoice <span class="badge">proyek deal</span></h2>
+      <p class="hint">Barang, harga, dan markup tetap memakai isi RAB. Yang ditambahkan hanya data penagihan.</p>
+      <div class="fields">
+        <label><span class="lbl">Nomor invoice</span><input id="i_nomor"></label>
+        <label><span class="lbl">Tanggal invoice</span><input type="date" id="i_tanggal"></label>
+        <label><span class="lbl">Jatuh tempo</span><input type="date" id="i_tempo"></label>
+        <label><span class="lbl">Mengacu pada RAB nomor</span><input id="i_ref"></label>
+        <label><span class="lbl">Status pembayaran</span>
+          <select id="i_status">
+            <option value="belum">Belum dibayar</option>
+            <option value="dp">Sudah bayar sebagian / DP</option>
+            <option value="lunas">Lunas</option>
+          </select>
+        </label>
+        <label><span class="lbl">Sudah dibayar</span>
+          <div class="inline">
+            <select id="i_dpmode"><option value="rp">Rp</option><option value="persen">%</option></select>
+            <input id="i_dp" class="num right" inputmode="numeric" value="0">
+          </div>
+        </label>
+      </div>
+      <div class="tools">
+        <button id="btnDariRab" class="tiny">Isi otomatis dari RAB</button>
+      </div>
     </section>
 
     <!-- PENGATURAN -->
@@ -361,7 +453,11 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
         <label><span class="lbl">Nomor WhatsApp</span><input id="p_wa" inputmode="tel" placeholder="0812-3456-7890"></label>
         <label><span class="lbl">Email / web</span><input id="p_email"></label>
         <label><span class="lbl">Kota (di atas tanda tangan)</span><input id="p_kota"></label>
+        <label><span class="lbl">Bank</span><input id="p_bank" placeholder="BCA"></label>
+        <label><span class="lbl">Nomor rekening</span><input id="p_rek"></label>
+        <label><span class="lbl">Rekening atas nama</span><input id="p_an"></label>
       </div>
+      <p class="hint" style="margin:8px 0 0">Rekening hanya dicetak di dokumen Invoice, tidak di RAB.</p>
       <p class="hint" id="waPrev" style="margin:8px 0 0"></p>
 
       <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line-soft)">
@@ -381,7 +477,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 
     <!-- SYARAT -->
     <section class="card">
-      <h2>Syarat &amp; ketentuan</h2>
+      <h2 id="lblSnk">Syarat &amp; ketentuan</h2>
       <p class="hint">Tampil sebagai daftar bernomor di bawah rekapitulasi.</p>
       <div id="snkList"></div>
       <button id="btnSnk" class="tiny">+ Tambah ketentuan</button>
@@ -409,7 +505,11 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
           </div>
         </label>
         <div class="sum-line"><span>PPN</span><b class="num" id="s_ppn">Rp 0</b></div>
-        <div class="sum-total"><span>Total</span><b class="num" id="s_total">Rp 0</b></div>
+        <div class="sum-total"><span id="s_totalLbl">Total</span><b class="num" id="s_total">Rp 0</b></div>
+        <div id="s_bayarBlok" hidden>
+          <div class="sum-line"><span>Sudah dibayar</span><b class="num" id="s_bayar">Rp 0</b></div>
+          <div class="sum-total"><span>Sisa tagihan</span><b class="num" id="s_sisa">Rp 0</b></div>
+        </div>
         <div class="terbilang" id="s_terbilang"></div>
       </div>
 
@@ -438,6 +538,18 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 </div>
 
 <div id="toast"><span id="toastMsg"></span><button id="toastAct" class="tiny">Salin teks</button></div>
+
+<div id="arsip" class="sheet">
+  <div class="sheet-box">
+    <h2>Riwayat RAB</h2>
+    <p class="hint">Tersimpan langsung di browser perangkat ini, tanpa perlu mengunduh file. Kosong kalau riwayat browser dibersihkan.</p>
+    <div class="tools">
+      <button id="arsipSimpan" class="primary">Simpan RAB ini ke riwayat</button>
+      <button id="arsipTutup" class="ghost">Tutup</button>
+    </div>
+    <div id="arsipList"></div>
+  </div>
+</div>
 
 <div id="sheet" class="sheet">
   <div class="sheet-box">
@@ -475,8 +587,16 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 /* ========== penyimpanan (aman di mana saja) ========== */
 const mem={};
 const store={
-  async get(k){try{if(window.storage){const r=await window.storage.get(k);return r?r.value:null}}catch(e){}return mem[k]??null},
-  async set(k,v){mem[k]=v;try{if(window.storage)await window.storage.set(k,v)}catch(e){}}
+  async get(k){
+    try{if(window.storage){const r=await window.storage.get(k);if(r)return r.value}}catch(e){}
+    try{const v=localStorage.getItem(k);if(v!==null)return v}catch(e){}
+    return mem[k]??null;
+  },
+  async set(k,v){
+    mem[k]=v;
+    try{if(window.storage)await window.storage.set(k,v)}catch(e){}
+    try{localStorage.setItem(k,v)}catch(e){}
+  }
 };
 
 /* ========== util ========== */
@@ -512,10 +632,18 @@ const hariIni=new Date().toISOString().slice(0,10);
 const blank=()=>({id:uid(),kategori:'',nama:'',spek:'',qty:1,satuan:'Unit',modal:0,markup:null,mode:'global',jual:0});
 let S={
   p:{nama:'Galaxy Computer',tag:'Computer, Networking & CCTV Solution',
-     alamat:'Denpasar, Bali',wa:'',email:'',ttd:'Irvan',jab:'Pimpinan',kota:'Denpasar',ttdList:[]},
+     alamat:'Denpasar, Bali',wa:'',email:'',ttd:'Irvan',jab:'Pimpinan',kota:'Denpasar',
+     bank:'',rek:'',an:'',ttdList:[]},
+  jenis:'rab',
+  inv:{nomor:'',tanggal:hariIni,tempo:'',ref:'',status:'belum',dp:0,dpMode:'rp',
+       pengantar:'Berikut kami sampaikan tagihan atas pekerjaan yang telah disepakati. Rincian sebagai berikut:'},
+  snkInv:['Pembayaran ditransfer ke rekening yang tercantum di atas.',
+          'Mohon cantumkan nomor invoice pada keterangan transfer.',
+          'Bukti transfer dapat dikirim melalui WhatsApp.',
+          'Garansi perangkat dan pemasangan berlaku sejak pekerjaan selesai.'],
   d:{nomor:'001/RAB/GC/'+new Date().getFullYear(),tanggal:hariIni,klien:'',kontak:'',proyek:'',lokasi:'',
      pengantar:'Bersama ini kami sampaikan rencana anggaran biaya atas pekerjaan tersebut di atas. Rincian harga sebagai berikut:'},
-  markup:20,bulat:1000,skipJasa:true,dMode:'rp',dNilai:0,ppnOn:1,ppnPs:11,
+  markup:20,bulat:1000,skipJasa:true,rapat:'auto',dMode:'rp',dNilai:0,ppnOn:1,ppnPs:11,
   snk:['Harga sudah termasuk jasa pemasangan dan pengujian.',
        'Penawaran berlaku 14 hari sejak tanggal surat.',
        'Pembayaran: 50% uang muka, 50% setelah pekerjaan selesai.',
@@ -574,6 +702,9 @@ function waTautan(v){const d=waAngka(v);return d?'https://wa.me/'+d:''}
 function normalisasi(){
   if(!S.p.ttdList)S.p.ttdList=[];
   if(S.p.telp&&!S.p.wa){S.p.wa=S.p.telp;delete S.p.telp}
+  if(!S.jenis)S.jenis='rab';
+  if(!S.inv)S.inv={nomor:'',tanggal:hariIni,tempo:'',ref:'',status:'belum',dp:0,dpMode:'rp',pengantar:''};
+  if(!Array.isArray(S.snkInv))S.snkInv=[];
   S.items.forEach(it=>{
     it.id=it.id||uid();
     if(!it.mode)it.mode=(it.markup===null||it.markup===''||it.markup===undefined)?'global':'mk';
@@ -591,7 +722,14 @@ function hitung(){
   const ppn=S.ppnOn?dpp*num(S.ppnPs)/100:0;
   const total=dpp+ppn;
   const laba=dpp-modal;
-  return {sub,disk,dpp,ppn,total,modal,laba,margin:dpp>0?laba/dpp*100:0,n};
+  let bayar=0;
+  if(S.jenis==='invoice'){
+    bayar=S.inv.status==='lunas'?total
+        :S.inv.status==='dp'?(S.inv.dpMode==='persen'?total*num(S.inv.dp)/100:Math.min(num(S.inv.dp),total))
+        :0;
+  }
+  const sisa=Math.max(0,total-bayar);
+  return {sub,disk,dpp,ppn,total,modal,laba,margin:dpp>0?laba/dpp*100:0,n,bayar,sisa};
 }
 
 /* ========== render baris ========== */
@@ -676,18 +814,19 @@ rowsEl.addEventListener('click',e=>{
 
 /* ========== syarat ========== */
 const snkEl=document.getElementById('snkList');
+const daftarSnk=()=>S.jenis==='invoice'?S.snkInv:S.snk;
 function renderSnk(){
-  snkEl.innerHTML=S.snk.map((s,i)=>`<div class="syarat-row" data-i="${i}">
+  snkEl.innerHTML=daftarSnk().map((s,i)=>`<div class="syarat-row" data-i="${i}">
     <input value="${esc(s)}"><button class="tiny ghost" data-del="${i}">✕</button></div>`).join('');
 }
 snkEl.addEventListener('input',e=>{
-  const i=+e.target.closest('.syarat-row').dataset.i;S.snk[i]=e.target.value;simpan();
+  const i=+e.target.closest('.syarat-row').dataset.i;daftarSnk()[i]=e.target.value;simpan();
 });
 snkEl.addEventListener('click',e=>{
   const d=e.target.dataset.del;if(d===undefined)return;
-  S.snk.splice(+d,1);renderSnk();simpan();
+  daftarSnk().splice(+d,1);renderSnk();simpan();
 });
-document.getElementById('btnSnk').onclick=()=>{S.snk.push('');renderSnk();simpan()};
+document.getElementById('btnSnk').onclick=()=>{daftarSnk().push('');renderSnk();simpan()};
 
 /* ========== ringkasan ========== */
 function ringkas(){
@@ -697,7 +836,11 @@ function ringkas(){
   document.getElementById('s_dpp').textContent=rp(h.dpp);
   document.getElementById('s_ppn').textContent=rp(h.ppn);
   document.getElementById('s_total').textContent=rp(h.total);
-  document.getElementById('s_terbilang').textContent=terbilang(h.total);
+  const inv=S.jenis==='invoice';
+  document.getElementById('s_bayarBlok').hidden=!inv||h.bayar<=0;
+  document.getElementById('s_bayar').textContent='− '+rp(h.bayar);
+  document.getElementById('s_sisa').textContent=rp(h.sisa);
+  document.getElementById('s_terbilang').textContent=terbilang(inv&&h.bayar>0?h.sisa:h.total);
   document.getElementById('l_modal').textContent=rp(h.modal);
   document.getElementById('l_laba').textContent=rp(h.laba);
   document.getElementById('l_margin').textContent=h.margin.toFixed(1)+'%';
@@ -732,8 +875,10 @@ const bind=(id,get,set,ev='input')=>{
 const F={
   p_nama:v=>S.p.nama=v,p_tag:v=>S.p.tag=v,p_alamat:v=>S.p.alamat=v,p_wa:v=>S.p.wa=v,
   p_email:v=>S.p.email=v,p_ttd:v=>S.p.ttd=v,p_jab:v=>S.p.jab=v,p_kota:v=>S.p.kota=v,
+  p_bank:v=>S.p.bank=v,p_rek:v=>S.p.rek=v,p_an:v=>S.p.an=v,
   f_nomor:v=>S.d.nomor=v,f_tanggal:v=>S.d.tanggal=v,f_klien:v=>S.d.klien=v,f_kontak:v=>S.d.kontak=v,
-  f_proyek:v=>S.d.proyek=v,f_lokasi:v=>S.d.lokasi=v,f_pengantar:v=>S.d.pengantar=v
+  f_proyek:v=>S.d.proyek=v,f_lokasi:v=>S.d.lokasi=v,
+  f_pengantar:v=>{if(S.jenis==='invoice')S.inv.pengantar=v;else S.d.pengantar=v}
 };
 Object.entries(F).forEach(([id,fn])=>bind(id,null,v=>{
   fn(v);
@@ -780,6 +925,44 @@ document.getElementById('btnTtdHapus').onclick=()=>{
   renderTtd();simpanProfil();
   toast(S.p.ttdList.length<n?'Terhapus dari daftar.':'Nama itu belum ada di daftar.');
 };
+bind('f_rapat',null,v=>S.rapat=v,'change');
+bind('i_nomor',null,v=>S.inv.nomor=v);
+bind('i_tanggal',null,v=>S.inv.tanggal=v);
+bind('i_tempo',null,v=>S.inv.tempo=v);
+bind('i_ref',null,v=>S.inv.ref=v);
+bind('i_dp',null,v=>S.inv.dp=num(v));
+bind('i_dpmode',null,v=>S.inv.dpMode=v,'change');
+bind('i_status',null,v=>S.inv.status=v,'change');
+
+/* ---- jenis dokumen ---- */
+function terapkanJenis(){
+  const inv=S.jenis==='invoice';
+  document.getElementById('cardInv').hidden=!inv;
+  document.getElementById('s_totalLbl').textContent=inv?'Total tagihan':'Total';
+  document.getElementById('lblSnk').textContent=inv?'Syarat pembayaran':'Syarat & ketentuan';
+  document.getElementById('f_pengantar').value=inv?(S.inv.pengantar||''):(S.d.pengantar||'');
+  renderSnk();ringkas();
+}
+document.getElementById('f_jenis').addEventListener('change',e=>{
+  S.jenis=e.target.value;
+  if(S.jenis==='invoice'&&!S.inv.nomor)dariRab();
+  terapkanJenis();simpan();
+});
+function dariRab(){
+  S.inv.nomor=(S.d.nomor||'').replace(/RAB/i,'INV')||'001/INV/GC/'+new Date().getFullYear();
+  S.inv.ref=S.d.nomor||'';
+  S.inv.tanggal=S.inv.tanggal||hariIni;
+  if(!S.inv.tempo){
+    const d=new Date();d.setDate(d.getDate()+7);
+    S.inv.tempo=d.toISOString().slice(0,10);
+  }
+  ['i_nomor','i_ref','i_tanggal','i_tempo'].forEach(id=>{
+    document.getElementById(id).value=S.inv[{i_nomor:'nomor',i_ref:'ref',i_tanggal:'tanggal',i_tempo:'tempo'}[id]]||'';
+  });
+  simpan();
+}
+document.getElementById('btnDariRab').onclick=()=>{dariRab();toast('Nomor dan tanggal invoice diisi dari RAB.')};
+
 bind('d_mode',null,v=>S.dMode=v,'change');
 bind('d_nilai',null,v=>S.dNilai=num(v));
 bind('ppn_on',null,v=>S.ppnOn=+v,'change');
@@ -799,8 +982,17 @@ function isiForm(){
   document.getElementById('ppn_on').value=S.ppnOn?'1':'0';
   document.getElementById('ppn_ps').value=S.ppnPs;
   document.getElementById('bulat').value=S.bulat;
+  document.getElementById('f_rapat').value=S.rapat||'auto';
+  document.getElementById('f_jenis').value=S.jenis||'rab';
+  document.getElementById('i_nomor').value=S.inv.nomor||'';
+  document.getElementById('i_tanggal').value=S.inv.tanggal||'';
+  document.getElementById('i_tempo').value=S.inv.tempo||'';
+  document.getElementById('i_ref').value=S.inv.ref||'';
+  document.getElementById('i_status').value=S.inv.status||'belum';
+  document.getElementById('i_dpmode').value=S.inv.dpMode||'rp';
+  document.getElementById('i_dp').value=fmt(S.inv.dp);
   document.getElementById('skipJasa').checked=!!S.skipJasa;
-  tampilWa();renderTtd();
+  tampilWa();renderTtd();terapkanJenis();
 }
 
 /* ========== tombol baris ========== */
@@ -856,14 +1048,27 @@ function buatDokumen(){
   if(!pakai.length)body='<tr><td colspan="6" class="c" style="padding:20px;color:#7A8794">Belum ada item.</td></tr>';
 
   const metaRow=(a,b)=>b?`<div><dt>${a}</dt><dd style="margin:0">: ${esc(b)}</dd></div>`:'';
+  const inv=S.jenis==='invoice';
   const rekap=[];
   rekap.push(`<tr><td>Subtotal</td><td class="r">${fmt(h.sub)}</td></tr>`);
   if(h.disk>0)rekap.push(`<tr><td>Diskon${S.dMode==='persen'?' ('+num(S.dNilai)+'%)':''}</td><td class="r">− ${fmt(h.disk)}</td></tr>`);
   if(h.disk>0)rekap.push(`<tr><td>Dasar pengenaan pajak</td><td class="r">${fmt(h.dpp)}</td></tr>`);
   if(S.ppnOn)rekap.push(`<tr><td>PPN ${num(S.ppnPs)}%</td><td class="r">${fmt(h.ppn)}</td></tr>`);
-  rekap.push(`<tr class="grand"><td>TOTAL</td><td class="r">Rp ${fmt(h.total)}</td></tr>`);
+  if(inv&&h.bayar>0){
+    rekap.push(`<tr><td>Total</td><td class="r">${fmt(h.total)}</td></tr>`);
+    rekap.push(`<tr><td>Pembayaran diterima</td><td class="r">− ${fmt(h.bayar)}</td></tr>`);
+    rekap.push(`<tr class="grand"><td>SISA TAGIHAN</td><td class="r">Rp ${fmt(h.sisa)}</td></tr>`);
+  }else{
+    rekap.push(`<tr class="grand"><td>${inv?'JUMLAH TAGIHAN':'TOTAL'}</td><td class="r">Rp ${fmt(h.total)}</td></tr>`);
+  }
 
-  document.getElementById('paper').innerHTML=`
+  const statusTeks=S.inv.status==='lunas'?'LUNAS'
+                  :S.inv.status==='dp'?'DIBAYAR SEBAGIAN':'BELUM DIBAYAR';
+  const bank=[S.p.bank,S.p.rek?'No. rek '+S.p.rek:'',S.p.an?'a.n. '+S.p.an:''].filter(Boolean).join(' &nbsp;·&nbsp; ');
+  const daftar=inv?S.snkInv:S.snk;
+  const terbilangNilai=inv&&h.bayar>0?h.sisa:h.total;
+
+  document.getElementById('paper').innerHTML=bungkusHalaman(`
   <div class="kop">
     <div>
       <h1>${esc(S.p.nama)}</h1>
@@ -872,19 +1077,22 @@ function buatDokumen(){
     <div class="kontak">${S.p.wa?'WA '+esc(waTampil(S.p.wa))+'<br>':''}${esc(S.p.email||'')}</div>
   </div>
 
-  <div class="judul">RENCANA ANGGARAN BIAYA</div>
+  <div class="judul">${inv?'INVOICE':'RENCANA ANGGARAN BIAYA'}</div>
   <div class="subjudul">${esc(S.d.proyek||'')}</div>
 
   <div class="meta">
-    ${metaRow('Nomor',S.d.nomor)}
-    ${metaRow('Tanggal',tglID(S.d.tanggal))}
+    ${metaRow('Nomor',inv?S.inv.nomor:S.d.nomor)}
+    ${metaRow('Tanggal',tglID(inv?S.inv.tanggal:S.d.tanggal))}
+    ${inv?metaRow('Jatuh tempo',tglID(S.inv.tempo)):''}
+    ${inv?metaRow('Ref. RAB',S.inv.ref):''}
     ${metaRow('Kepada',S.d.klien)}
     ${metaRow('Up.',S.d.kontak)}
     ${metaRow('Pekerjaan',S.d.proyek)}
     ${metaRow('Lokasi',S.d.lokasi)}
+    ${inv?metaRow('Status',statusTeks):''}
   </div>
 
-  ${S.d.pengantar?`<p class="pengantar">${esc(S.d.pengantar)}</p>`:''}
+  ${(inv?S.inv.pengantar:S.d.pengantar)?`<p class="pengantar">${esc(inv?S.inv.pengantar:S.d.pengantar)}</p>`:''}
 
   <table>
     <thead><tr>
@@ -899,33 +1107,65 @@ function buatDokumen(){
   </table>
 
   <div class="rekap"><table>${rekap.join('')}</table></div>
-  <div class="terbilang-doc">Terbilang: ${terbilang(h.total)}</div>
+  <div class="terbilang-doc">Terbilang: ${terbilang(terbilangNilai)}</div>
 
-  ${S.snk.filter(x=>x.trim()).length?`<div class="snk"><h3>Syarat dan ketentuan</h3>
-    <ol>${S.snk.filter(x=>x.trim()).map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div>`:''}
+  ${inv&&bank?`<div class="bank"><b>Pembayaran ditransfer ke</b><br>${bank}</div>`:''}
+
+  ${daftar.filter(x=>x.trim()).length?`<div class="snk"><h3>${inv?'Syarat pembayaran':'Syarat dan ketentuan'}</h3>
+    <ol>${daftar.filter(x=>x.trim()).map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div>`:''}
 
   <div class="ttd"><div>
-    ${esc(S.p.kota||'')}${S.d.tanggal?', '+tglID(S.d.tanggal):''}<br>Hormat kami,<br><b>${esc(S.p.nama)}</b>
+    ${esc(S.p.kota||'')}${(inv?S.inv.tanggal:S.d.tanggal)?', '+tglID(inv?S.inv.tanggal:S.d.tanggal):''}<br>Hormat kami,<br><b>${esc(S.p.nama)}</b>
     <div class="nm">${esc(S.p.ttd||'')}</div>
     <div class="jb">${esc(S.p.jab||'')}</div>
   </div></div>
 
-  <div class="foot">Dokumen ini dibuat secara elektronik oleh ${esc(S.p.nama)}${S.p.wa?' · WA '+esc(waTampil(S.p.wa)):''}</div>`;
+  `);
+}
+
+/* pembungkus agar setiap halaman cetak punya margin atas-bawah sendiri
+   (margin @page dibuat 0 supaya browser tidak menambah URL, tanggal, nomor halaman) */
+function bungkusHalaman(isi){
+  return `<table class="pg"><thead><tr><td><div class="pg-sp"></div></td></tr></thead>
+    <tfoot><tr><td><div class="pg-sp"></div></td></tr></tfoot>
+    <tbody><tr><td>${isi}</td></tr></tbody></table>`;
 }
 
 /* ========== pratinjau & cetak ========== */
 const ov=document.getElementById('overlay');
+
+/* pilih kerapatan agar isi memakai halaman sesedikit mungkin */
+function sesuaikanHalaman(){
+  const paper=document.getElementById('paper');
+  if((S.rapat||'auto')!=='auto'){paper.dataset.rapat=S.rapat;return}
+  const tinggiHalaman=297*3.7795275;               // A4 dalam piksel
+  let terbaik=0,palingSedikit=Infinity;
+  for(let lv=0;lv<=2;lv++){
+    paper.dataset.rapat=lv;
+    const h=paper.scrollHeight;
+    if(!h)break;                                    // dokumen belum tampil
+    const halaman=Math.ceil((h-2)/tinggiHalaman);
+    if(halaman<palingSedikit){palingSedikit=halaman;terbaik=lv}
+  }
+  paper.dataset.rapat=terbaik;
+}
+
 function siapCetak(){
+  document.querySelectorAll('.sheet.on').forEach(s=>s.classList.remove('on'));
   const t=document.getElementById('toast');
   if(t)t.classList.remove('on');
-  const s=document.getElementById('sheet');
-  if(s)s.classList.remove('on');
   buatDokumen();
 }
-document.getElementById('btnPratinjau').onclick=()=>{buatDokumen();ov.classList.add('on');window.scrollTo(0,0)};
+document.getElementById('btnPratinjau').onclick=()=>{
+  buatDokumen();ov.classList.add('on');sesuaikanHalaman();window.scrollTo(0,0);
+};
 document.getElementById('ovClose').onclick=()=>ov.classList.remove('on');
-document.getElementById('btnCetak').onclick=()=>{siapCetak();ov.classList.add('on');setTimeout(()=>window.print(),150)};
-document.getElementById('ovPrint').onclick=()=>{siapCetak();setTimeout(()=>window.print(),120)};
+document.getElementById('btnCetak').onclick=()=>{
+  siapCetak();ov.classList.add('on');sesuaikanHalaman();setTimeout(()=>window.print(),150);
+};
+document.getElementById('ovPrint').onclick=()=>{
+  siapCetak();sesuaikanHalaman();setTimeout(()=>window.print(),120);
+};
 
 /* ========== dokumen Word (.doc, bisa diedit di Word) ========== */
 function dokumenWord(){
@@ -961,14 +1201,28 @@ function dokumenWord(){
   const rk=(a,b,bold)=>`<tr><td style="padding:3pt 5pt;border-bottom:1px solid #C9D2DA${bold?';font-weight:bold':''}">${a}</td>
     <td style="padding:3pt 5pt;border-bottom:1px solid #C9D2DA;text-align:right${bold?';font-weight:bold':''}">${b}</td></tr>`;
 
+  const inv=S.jenis==='invoice';
   let rekap=rk('Subtotal',fmt(h.sub));
   if(h.disk>0){
     rekap+=rk('Diskon'+(S.dMode==='persen'?' ('+num(S.dNilai)+'%)':''),'− '+fmt(h.disk));
     rekap+=rk('Dasar pengenaan pajak',fmt(h.dpp));
   }
   if(S.ppnOn)rekap+=rk('PPN '+num(S.ppnPs)+'%',fmt(h.ppn));
-  rekap+=`<tr><td style="padding:5pt;border-top:2px solid #15191F;font-weight:bold;font-size:12pt">TOTAL</td>
-    <td style="padding:5pt;border-top:2px solid #15191F;font-weight:bold;font-size:12pt;text-align:right">Rp ${fmt(h.total)}</td></tr>`;
+  if(inv&&h.bayar>0){
+    rekap+=rk('Total',fmt(h.total));
+    rekap+=rk('Pembayaran diterima','− '+fmt(h.bayar));
+  }
+  const labelAkhir=inv?(h.bayar>0?'SISA TAGIHAN':'JUMLAH TAGIHAN'):'TOTAL';
+  const nilaiAkhir=inv&&h.bayar>0?h.sisa:h.total;
+  rekap+=`<tr><td style="padding:5pt;border-top:2px solid #15191F;font-weight:bold;font-size:12pt">${labelAkhir}</td>
+    <td style="padding:5pt;border-top:2px solid #15191F;font-weight:bold;font-size:12pt;text-align:right">Rp ${fmt(nilaiAkhir)}</td></tr>`;
+
+  const statusTeks=S.inv.status==='lunas'?'LUNAS'
+                  :S.inv.status==='dp'?'DIBAYAR SEBAGIAN':'BELUM DIBAYAR';
+  const bank=[S.p.bank,S.p.rek?'No. rek '+S.p.rek:'',S.p.an?'a.n. '+S.p.an:''].filter(Boolean).join(' &#183; ');
+  const daftar=inv?S.snkInv:S.snk;
+  const tglDok=inv?S.inv.tanggal:S.d.tanggal;
+  const pengantar=inv?S.inv.pengantar:S.d.pengantar;
 
   return `\ufeff<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head><meta charset="utf-8">
@@ -994,15 +1248,15 @@ p{margin:0 0 6pt}
 </tr></table>
 <div style="border-bottom:2.5pt solid #15191F;margin:4pt 0 14pt"></div>
 
-<p style="text-align:center;font-size:13.5pt;font-weight:bold;letter-spacing:1pt;margin:0">RENCANA ANGGARAN BIAYA</p>
+<p style="text-align:center;font-size:13.5pt;font-weight:bold;letter-spacing:1pt;margin:0">${inv?'INVOICE':'RENCANA ANGGARAN BIAYA'}</p>
 <p style="text-align:center;font-size:9.5pt;color:#55636F;margin:2pt 0 14pt">${esc(S.d.proyek||'')}</p>
 
 <table width="100%" style="font-size:10pt;margin-bottom:12pt"><tr>
-  <td style="vertical-align:top;width:50%"><table>${baris('Nomor',S.d.nomor)}${baris('Tanggal',tglID(S.d.tanggal))}${baris('Pekerjaan',S.d.proyek)}</table></td>
-  <td style="vertical-align:top"><table>${baris('Kepada',S.d.klien)}${baris('Up.',S.d.kontak)}${baris('Lokasi',S.d.lokasi)}</table></td>
+  <td style="vertical-align:top;width:50%"><table>${baris('Nomor',inv?S.inv.nomor:S.d.nomor)}${baris('Tanggal',tglID(tglDok))}${inv?baris('Jatuh tempo',tglID(S.inv.tempo)):''}${baris('Pekerjaan',S.d.proyek)}</table></td>
+  <td style="vertical-align:top"><table>${baris('Kepada',S.d.klien)}${baris('Up.',S.d.kontak)}${baris('Lokasi',S.d.lokasi)}${inv?baris('Status',statusTeks):''}${inv?baris('Ref. RAB',S.inv.ref):''}</table></td>
 </tr></table>
 
-${S.d.pengantar?`<p style="font-size:10pt;color:#2A323B">${esc(S.d.pengantar)}</p>`:''}
+${pengantar?`<p style="font-size:10pt;color:#2A323B">${esc(pengantar)}</p>`:''}
 
 <table width="100%" style="font-size:9.8pt">
 <tr>${th('No','24pt','center')}${th('Uraian pekerjaan / barang')}${th('Vol','38pt','center')}${th('Satuan','48pt','center')}${th('Harga satuan','72pt','right')}${th('Jumlah','80pt','right')}</tr>
@@ -1012,16 +1266,19 @@ ${body}
 <table align="right" style="width:240pt;font-size:10pt;margin-top:10pt">${rekap}</table>
 <div style="clear:both"></div>
 
-<p style="margin-top:12pt;font-size:9.5pt;font-style:italic;border-left:3pt solid #15191F;padding-left:7pt">Terbilang: ${terbilang(h.total)}</p>
+<p style="margin-top:12pt;font-size:9.5pt;font-style:italic;border-left:3pt solid #15191F;padding-left:7pt">Terbilang: ${terbilang(nilaiAkhir)}</p>
 
-${S.snk.filter(x=>x.trim()).length?`<div style="margin-top:14pt;font-size:9.5pt">
-  <p style="font-weight:bold;font-size:10pt;margin-bottom:3pt">Syarat dan ketentuan</p>
-  <ol style="margin:0;padding-left:16pt">${S.snk.filter(x=>x.trim()).map(x=>`<li style="margin-bottom:2pt">${esc(x)}</li>`).join('')}</ol></div>`:''}
+${inv&&bank?`<table width="100%" style="margin-top:10pt;border:1pt solid #15191F"><tr><td style="padding:6pt 9pt;font-size:9.5pt">
+  <b>Pembayaran ditransfer ke</b><br>${bank}</td></tr></table>`:''}
+
+${daftar.filter(x=>x.trim()).length?`<div style="margin-top:14pt;font-size:9.5pt">
+  <p style="font-weight:bold;font-size:10pt;margin-bottom:3pt">${inv?'Syarat pembayaran':'Syarat dan ketentuan'}</p>
+  <ol style="margin:0;padding-left:16pt">${daftar.filter(x=>x.trim()).map(x=>`<li style="margin-bottom:2pt">${esc(x)}</li>`).join('')}</ol></div>`:''}
 
 <table width="100%" style="margin-top:24pt"><tr>
   <td style="width:55%"></td>
   <td style="text-align:center;font-size:10pt">
-    ${esc(S.p.kota||'')}${S.d.tanggal?', '+tglID(S.d.tanggal):''}<br>Hormat kami,<br><b>${esc(S.p.nama)}</b>
+    ${esc(S.p.kota||'')}${tglDok?', '+tglID(tglDok):''}<br>Hormat kami,<br><b>${esc(S.p.nama)}</b>
     <div style="height:56pt"></div>
     <div style="border-top:1px solid #15191F;padding-top:3pt;font-weight:bold">${esc(S.p.ttd||'')}</div>
     <div style="font-size:9pt;color:#55636F">${esc(S.p.jab||'')}</div>
@@ -1032,7 +1289,8 @@ ${S.snk.filter(x=>x.trim()).length?`<div style="margin-top:14pt;font-size:9.5pt"
 }
 
 /* ========== simpan / muat file ========== */
-const namaFile=()=>'RAB-'+(S.d.proyek||'tanpa-judul').replace(/[^\w\s-]/g,'').trim().replace(/\s+/g,'-');
+const namaFile=()=>(S.jenis==='invoice'?'INVOICE-':'RAB-')+
+  (S.d.proyek||'tanpa-judul').replace(/[^\w\s-]/g,'').trim().replace(/\s+/g,'-');
 
 const toastEl=document.getElementById('toast');
 let tToast;
@@ -1072,7 +1330,7 @@ function muatDariTeks(teks){
     const profil=S.p;              // pengaturan tetap tidak ikut ketimpa
     S=Object.assign(S,d);
     S.p=profil;
-    normalisasi();isiForm();setMarkup(S.markup);renderSnk();renderRows();ringkas();simpan();
+    normalisasi();isiForm();setMarkup(S.markup);renderRows();ringkas();simpan();
     toast('RAB dimuat. Pengaturan perusahaan tetap dipakai.');
     return true;
   }catch(err){toast('Teks tidak dikenali. Pastikan isinya hasil dari tombol Simpan file.');return false}
@@ -1124,6 +1382,65 @@ document.getElementById('fileIn').addEventListener('change',e=>{
   r.readAsText(f);e.target.value='';
 });
 
+/* ========== riwayat RAB ========== */
+let arsip=[];
+const arsipEl=document.getElementById('arsip'),arsipList=document.getElementById('arsipList');
+async function bacaArsip(){
+  try{const r=await store.get('rab-galaxy-arsip');arsip=r?JSON.parse(r):[]}catch(e){arsip=[]}
+  if(!Array.isArray(arsip))arsip=[];
+}
+function tulisArsip(){store.set('rab-galaxy-arsip',JSON.stringify(arsip))}
+function waktuSingkat(iso){
+  const d=new Date(iso);
+  if(isNaN(d))return '';
+  return d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+
+    ', '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+}
+function renderArsip(){
+  if(!arsip.length){
+    arsipList.innerHTML='<div class="empty">Belum ada RAB tersimpan.</div>';return;
+  }
+  arsipList.innerHTML=arsip.map(a=>`<div class="arsip-item" data-id="${a.id}">
+    <div class="t">
+      <b>${esc(a.nama)}</b>
+      <small>${esc(a.klien||'tanpa klien')} · ${rp(a.total)} · ${waktuSingkat(a.waktu)}</small>
+    </div>
+    <button class="tiny" data-buka="${a.id}">Buka</button>
+    <button class="tiny ghost" data-hapus="${a.id}">✕</button>
+  </div>`).join('');
+}
+function simpanKeArsip(){
+  const nama=(S.d.proyek||'').trim()||'Tanpa judul';
+  const h=hitung();
+  const entri={id:uid(),nama,klien:S.d.klien||'',nomor:S.d.nomor||'',
+               total:h.total,waktu:new Date().toISOString(),data:JSON.stringify(S)};
+  const idx=arsip.findIndex(a=>a.nama.toLowerCase()===nama.toLowerCase()&&a.nomor===entri.nomor);
+  if(idx>=0){
+    if(!confirm('“'+nama+'” sudah ada di riwayat. Timpa dengan versi sekarang?'))return;
+    entri.id=arsip[idx].id;arsip[idx]=entri;
+    arsip.unshift(arsip.splice(idx,1)[0]);
+  }else arsip.unshift(entri);
+  arsip=arsip.slice(0,40);
+  tulisArsip();renderArsip();
+  toast('“'+nama+'” tersimpan di riwayat.');
+}
+document.getElementById('btnArsip').onclick=()=>{renderArsip();arsipEl.classList.add('on')};
+document.getElementById('arsipTutup').onclick=()=>arsipEl.classList.remove('on');
+arsipEl.addEventListener('click',e=>{if(e.target===arsipEl)arsipEl.classList.remove('on')});
+document.getElementById('arsipSimpan').onclick=simpanKeArsip;
+arsipList.addEventListener('click',e=>{
+  const buka=e.target.dataset.buka,hapus=e.target.dataset.hapus;
+  if(buka){
+    const a=arsip.find(x=>x.id===buka);
+    if(a&&muatDariTeks(a.data))arsipEl.classList.remove('on');
+  }else if(hapus){
+    const a=arsip.find(x=>x.id===hapus);
+    if(!a||!confirm('Hapus “'+a.nama+'” dari riwayat?'))return;
+    arsip=arsip.filter(x=>x.id!==hapus);
+    tulisArsip();renderArsip();toast('Terhapus dari riwayat.');
+  }
+});
+
 /* ========== autosave ========== */
 let tSave,tProfil;
 function simpan(){clearTimeout(tSave);tSave=setTimeout(()=>store.set('rab-galaxy',JSON.stringify(S)),400)}
@@ -1135,7 +1452,8 @@ function simpanProfil(){clearTimeout(tProfil);tProfil=setTimeout(()=>store.set('
   const profil=await store.get('rab-galaxy-profil');
   if(profil){try{const p=JSON.parse(profil);if(p&&p.nama)S.p=Object.assign(S.p,p)}catch(e){}}
   normalisasi();
-  isiForm();renderSnk();setMarkup(S.markup);renderRows();ringkas();
+  await bacaArsip();
+  isiForm();setMarkup(S.markup);renderRows();ringkas();renderArsip();
 })();
 </script>
 </body>
