@@ -44,7 +44,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
   outline:2px solid var(--cyan);outline-offset:1px;
 }
 textarea{resize:vertical;min-height:74px;line-height:1.5}
-label span.lbl{display:block;font-size:12.5px;color:var(--muted);margin-bottom:4px}
+input.terkunci{background:#10161E;color:var(--muted);border-style:dashed;cursor:not-allowed;user-select:all;-webkit-user-select:all}
+label span.lbl,.fld span.lbl{display:block;font-size:12.5px;color:var(--muted);margin-bottom:4px}
+.inline-edit{display:flex;gap:8px}
+.inline-edit input{flex:1;min-width:0}
+#btnWaEdit{flex:0 0 auto;width:44px;padding:0;font-size:17px;line-height:1}
 .num{font-variant-numeric:tabular-nums}
 
 /* ---------- top bar ---------- */
@@ -450,14 +454,19 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
         <label><span class="lbl">Nama perusahaan</span><input id="p_nama"></label>
         <label><span class="lbl">Tagline / bidang usaha</span><input id="p_tag"></label>
         <label><span class="lbl">Alamat</span><input id="p_alamat"></label>
-        <label><span class="lbl">Nomor WhatsApp</span><input id="p_wa" inputmode="tel" placeholder="0812-3456-7890"></label>
+        <div class="fld"><span class="lbl">Nomor WhatsApp</span>
+          <div class="inline-edit">
+            <input id="p_wa" class="terkunci" readonly inputmode="tel">
+            <button type="button" id="btnWaEdit" aria-label="Ubah nomor WhatsApp" title="Ubah nomor">✎</button>
+          </div>
+        </div>
         <label><span class="lbl">Email / web</span><input id="p_email"></label>
         <label><span class="lbl">Kota (di atas tanda tangan)</span><input id="p_kota"></label>
-        <label><span class="lbl">Bank</span><input id="p_bank" placeholder="BCA"></label>
-        <label><span class="lbl">Nomor rekening</span><input id="p_rek"></label>
-        <label><span class="lbl">Rekening atas nama</span><input id="p_an"></label>
+        <label><span class="lbl">Bank 🔒</span><input id="p_bank" class="terkunci" readonly tabindex="-1"></label>
+        <label><span class="lbl">Nomor rekening 🔒</span><input id="p_rek" class="terkunci" readonly tabindex="-1"></label>
+        <label><span class="lbl">Rekening atas nama 🔒</span><input id="p_an" class="terkunci" readonly tabindex="-1"></label>
       </div>
-      <p class="hint" style="margin:8px 0 0">Rekening hanya dicetak di dokumen Invoice, tidak di RAB.</p>
+      <p class="hint" style="margin:8px 0 0">Data rekening terkunci dan tidak bisa diubah dari aplikasi. Hanya dicetak di dokumen Invoice, tidak di RAB.</p>
       <p class="hint" id="waPrev" style="margin:8px 0 0"></p>
 
       <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line-soft)">
@@ -629,11 +638,15 @@ function terbilang(n){
 
 /* ========== state ========== */
 const hariIni=new Date().toISOString().slice(0,10);
+/* rekening penerima invoice: tetap, tidak bisa diubah dari aplikasi */
+const REKENING=Object.freeze({bank:'BCA',rek:'7680467654',an:'I GUSTI PUTU IRVAN HADY'});
+/* nomor WhatsApp bawaan: terkunci, baru bisa diubah lewat ikon edit */
+const WA_BAWAAN='082247028751';
 const blank=()=>({id:uid(),kategori:'',nama:'',spek:'',qty:1,satuan:'Unit',modal:0,markup:null,mode:'global',jual:0});
 let S={
   p:{nama:'Galaxy Computer',tag:'Computer, Networking & CCTV Solution',
-     alamat:'Denpasar, Bali',wa:'',email:'',ttd:'Irvan',jab:'Pimpinan',kota:'Denpasar',
-     bank:'BCA',rek:'7680467654',an:'I GUSTI PUTU IRVAN HADY',ttdList:[]},
+     alamat:'Denpasar, Bali',wa:WA_BAWAAN,email:'',ttd:'Irvan',jab:'Pimpinan',kota:'Denpasar',
+     bank:REKENING.bank,rek:REKENING.rek,an:REKENING.an,ttdList:[]},
   jenis:'rab',
   inv:{nomor:'',tanggal:hariIni,tempo:'',ref:'',status:'belum',dp:0,dpMode:'rp',
        pengantar:'Berikut kami sampaikan tagihan atas pekerjaan yang telah disepakati. Rincian sebagai berikut:'},
@@ -705,15 +718,11 @@ function normalisasi(){
   if(!S.jenis)S.jenis='rab';
   if(!S.inv)S.inv={nomor:'',tanggal:hariIni,tempo:'',ref:'',status:'belum',dp:0,dpMode:'rp',pengantar:''};
   if(!Array.isArray(S.snkInv))S.snkInv=[];
-  /* profil lama di browser punya rekening kosong yang menimpa nilai bawaan:
-     isi satu kali saja, setelah itu Bapak bebas mengubah atau mengosongkannya */
-  if(!S.p.rekDiisi){
-    if(!S.p.bank)S.p.bank='BCA';
-    if(!S.p.rek)S.p.rek='7680467654';
-    if(!S.p.an)S.p.an='I GUSTI PUTU IRVAN HADY';
-    S.p.rekDiisi=true;
-    simpanProfil();
-  }
+  /* rekening selalu dikembalikan ke nilai tetap, apa pun isi data tersimpan atau file yang dimuat */
+  Object.assign(S.p,REKENING);
+  delete S.p.rekDiisi;
+  /* nomor WA yang pernah diubah lewat ikon edit tetap dipakai; hanya yang kosong diisi bawaan */
+  if(!S.p.wa||!waAngka(S.p.wa))S.p.wa=WA_BAWAAN;
   S.items.forEach(it=>{
     it.id=it.id||uid();
     if(!it.mode)it.mode=(it.markup===null||it.markup===''||it.markup===undefined)?'global':'mk';
@@ -884,7 +893,7 @@ const bind=(id,get,set,ev='input')=>{
 const F={
   p_nama:v=>S.p.nama=v,p_tag:v=>S.p.tag=v,p_alamat:v=>S.p.alamat=v,p_wa:v=>S.p.wa=v,
   p_email:v=>S.p.email=v,p_ttd:v=>S.p.ttd=v,p_jab:v=>S.p.jab=v,p_kota:v=>S.p.kota=v,
-  p_bank:v=>S.p.bank=v,p_rek:v=>S.p.rek=v,p_an:v=>S.p.an=v,
+  p_bank:()=>S.p.bank=REKENING.bank,p_rek:()=>S.p.rek=REKENING.rek,p_an:()=>S.p.an=REKENING.an,
   f_nomor:v=>S.d.nomor=v,f_tanggal:v=>S.d.tanggal=v,f_klien:v=>S.d.klien=v,f_kontak:v=>S.d.kontak=v,
   f_proyek:v=>S.d.proyek=v,f_lokasi:v=>S.d.lokasi=v,
   f_pengantar:v=>{if(S.jenis==='invoice')S.inv.pengantar=v;else S.d.pengantar=v}
@@ -900,8 +909,31 @@ function tampilWa(){
   const t=waTautan(S.p.wa);
   document.getElementById('waPrev').innerHTML=t
     ? `Tercetak sebagai <b>WA ${esc(waTampil(S.p.wa))}</b> — <a href="${t}" target="_blank" rel="noopener" style="color:var(--cyan)">cek tautan</a>`
-    : 'Kosongkan kalau tidak ingin nomor tercetak di kop surat.';
+    : 'Nomor belum valid. Tekan ikon edit untuk memperbaikinya.';
 }
+
+/* kolom WhatsApp terkunci; ikon ✎ membuka kunci, ✓ mengunci kembali */
+const waIn=document.getElementById('p_wa'),waBtn=document.getElementById('btnWaEdit');
+function kunciWa(kunci){
+  waIn.readOnly=kunci;
+  waIn.classList.toggle('terkunci',kunci);
+  waBtn.textContent=kunci?'✎':'✓';
+  waBtn.title=kunci?'Ubah nomor':'Selesai';
+  waBtn.setAttribute('aria-label',kunci?'Ubah nomor WhatsApp':'Simpan nomor WhatsApp');
+  if(!kunci){waIn.focus();waIn.select()}
+}
+waBtn.addEventListener('click',()=>{
+  if(waIn.readOnly){kunciWa(false);return}
+  if(waAngka(waIn.value).length<10){
+    toast('Nomor WhatsApp terlalu pendek atau kosong. Periksa lagi.');
+    return;
+  }
+  S.p.wa=waIn.value.trim();
+  simpanProfil();tampilWa();
+  kunciWa(true);
+  toast('Nomor WhatsApp diperbarui: '+waTampil(S.p.wa));
+});
+waIn.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();waBtn.click()}});
 
 /* ---- daftar penanda tangan ---- */
 const ttdPilih=document.getElementById('ttdPilih');
@@ -1001,7 +1033,7 @@ function isiForm(){
   document.getElementById('i_dpmode').value=S.inv.dpMode||'rp';
   document.getElementById('i_dp').value=fmt(S.inv.dp);
   document.getElementById('skipJasa').checked=!!S.skipJasa;
-  tampilWa();renderTtd();terapkanJenis();
+  kunciWa(true);tampilWa();renderTtd();terapkanJenis();
 }
 
 /* ========== tombol baris ========== */
