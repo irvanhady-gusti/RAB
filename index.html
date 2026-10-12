@@ -633,7 +633,7 @@ const blank=()=>({id:uid(),kategori:'',nama:'',spek:'',qty:1,satuan:'Unit',modal
 let S={
   p:{nama:'Galaxy Computer',tag:'Computer, Networking & CCTV Solution',
      alamat:'Denpasar, Bali',wa:'',email:'',ttd:'Irvan',jab:'Pimpinan',kota:'Denpasar',
-     bank:'',rek:'',an:'',ttdList:[]},
+     bank:'BCA',rek:'7680467654',an:'I GUSTI PUTU IRVAN HADY',ttdList:[]},
   jenis:'rab',
   inv:{nomor:'',tanggal:hariIni,tempo:'',ref:'',status:'belum',dp:0,dpMode:'rp',
        pengantar:'Berikut kami sampaikan tagihan atas pekerjaan yang telah disepakati. Rincian sebagai berikut:'},
@@ -705,6 +705,15 @@ function normalisasi(){
   if(!S.jenis)S.jenis='rab';
   if(!S.inv)S.inv={nomor:'',tanggal:hariIni,tempo:'',ref:'',status:'belum',dp:0,dpMode:'rp',pengantar:''};
   if(!Array.isArray(S.snkInv))S.snkInv=[];
+  /* profil lama di browser punya rekening kosong yang menimpa nilai bawaan:
+     isi satu kali saja, setelah itu Bapak bebas mengubah atau mengosongkannya */
+  if(!S.p.rekDiisi){
+    if(!S.p.bank)S.p.bank='BCA';
+    if(!S.p.rek)S.p.rek='7680467654';
+    if(!S.p.an)S.p.an='I GUSTI PUTU IRVAN HADY';
+    S.p.rekDiisi=true;
+    simpanProfil();
+  }
   S.items.forEach(it=>{
     it.id=it.id||uid();
     if(!it.mode)it.mode=(it.markup===null||it.markup===''||it.markup===undefined)?'global':'mk';
