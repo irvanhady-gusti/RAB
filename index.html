@@ -327,6 +327,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 <div class="app">
 <header class="bar">
   <div class="brand"><b>Penyusun RAB</b><em id="brandCo">Galaxy Computer</em></div>
+  <button id="btnBaru" class="ghost">+ RAB baru</button>
   <button id="btnArsip" class="ghost">Riwayat</button>
   <button id="btnMuat" class="ghost">Muat file</button>
   <input type="file" id="fileIn" accept="application/json" hidden>
@@ -637,7 +638,8 @@ function terbilang(n){
 }
 
 /* ========== state ========== */
-const hariIni=new Date().toISOString().slice(0,10);
+const tanggalLokal=()=>{const t=new Date();return new Date(t-t.getTimezoneOffset()*60000).toISOString().slice(0,10)};
+const hariIni=tanggalLokal();
 /* rekening penerima invoice: tetap, tidak bisa diubah dari aplikasi */
 const REKENING=Object.freeze({bank:'BCA',rek:'7680467654',an:'I GUSTI PUTU IRVAN HADY'});
 /* nomor WhatsApp bawaan: terkunci, baru bisa diubah lewat ikon edit */
@@ -1368,6 +1370,9 @@ function muatDariTeks(teks){
   try{
     const d=JSON.parse(teks);
     if(!d||!Array.isArray(d.items))throw 0;
+    /* pekerjaan yang sedang dikerjakan diamankan ke riwayat dulu, kecuali ia dokumen yang sama */
+    const kunci=(nama,nomor)=>String(nama||'').trim().toLowerCase()+'|'+String(nomor||'');
+    if(layakArsip()&&kunci(S.d.proyek,S.d.nomor)!==kunci(d.d&&d.d.proyek,d.d&&d.d.nomor))arsipOtomatis();
     const profil=S.p;              // pengaturan tetap tidak ikut ketimpa
     S=Object.assign(S,d);
     S.p=profil;
@@ -1489,6 +1494,28 @@ function arsipOtomatis(){
   arsip=arsip.slice(0,40);
   tulisArsip();renderArsip();kedipRiwayat();
 }
+/* RAB baru: pekerjaan sekarang diamankan ke riwayat, lalu layar dikosongkan.
+   Pengaturan perusahaan, markup, PPN, dan daftar syarat tetap dipakai. */
+function nomorBerikut(n){
+  const m=String(n||'').match(/\d+/);
+  if(!m)return '001/RAB/GC/'+new Date().getFullYear();
+  const baru=String(parseInt(m[0],10)+1).padStart(m[0].length,'0');
+  return String(n).replace(m[0],baru);
+}
+function rabBaru(){
+  if(layakArsip()&&!confirm('Mulai RAB baru?\n\nPekerjaan yang sedang dikerjakan disimpan dulu ke Riwayat.'))return;
+  arsipOtomatis();
+  const hari=tanggalLokal();
+  S.items=[blank(),blank(),blank()];
+  S.d=Object.assign({},S.d,{nomor:nomorBerikut(S.d.nomor),tanggal:hari,klien:'',kontak:'',proyek:'',lokasi:''});
+  S.dMode='rp';S.dNilai=0;
+  S.jenis='rab';
+  S.inv=Object.assign({},S.inv,{nomor:'',tanggal:hari,tempo:'',ref:'',status:'belum',dp:0,dpMode:'rp'});
+  isiForm();renderRows();ringkas();simpan();
+  window.scrollTo({top:0,behavior:'smooth'});
+  toast('RAB baru siap, nomor '+S.d.nomor+'. Pekerjaan sebelumnya ada di Riwayat.');
+}
+document.getElementById('btnBaru').onclick=rabBaru;
 document.getElementById('btnArsip').onclick=()=>{renderArsip();arsipEl.classList.add('on')};
 document.getElementById('arsipTutup').onclick=()=>arsipEl.classList.remove('on');
 arsipEl.addEventListener('click',e=>{if(e.target===arsipEl)arsipEl.classList.remove('on')});
@@ -1507,18 +1534,33 @@ arsipList.addEventListener('click',e=>{
 });
 
 /* ========== autosave ========== */
-let tSave,tProfil;
+let tSave,tProfil,siap=false,dipulihkan=false;
 function simpan(){clearTimeout(tSave);tSave=setTimeout(()=>store.set('rab-galaxy',JSON.stringify(S)),400)}
 function simpanProfil(){clearTimeout(tProfil);tProfil=setTimeout(()=>store.set('rab-galaxy-profil',JSON.stringify(S.p)),400);simpan()}
 
+/* tulis langsung tanpa menunggu jeda, dipicu saat tab ditutup atau aplikasi ditinggalkan
+   (penting di HP: aplikasi yang digeser tutup tidak sempat menjalankan jeda 0,4 detik) */
+function simpanSegera(){
+  if(!siap)return;                       // jangan menimpa data tersimpan sebelum selesai dimuat
+  clearTimeout(tSave);clearTimeout(tProfil);
+  try{
+    localStorage.setItem('rab-galaxy',JSON.stringify(S));
+    localStorage.setItem('rab-galaxy-profil',JSON.stringify(S.p));
+  }catch(e){}
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')simpanSegera()});
+window.addEventListener('pagehide',simpanSegera);
+
 (async function init(){
   const saved=await store.get('rab-galaxy');
-  if(saved){try{const d=JSON.parse(saved);if(d&&Array.isArray(d.items))S=Object.assign(S,d)}catch(e){}}
+  if(saved){try{const d=JSON.parse(saved);if(d&&Array.isArray(d.items)){S=Object.assign(S,d);dipulihkan=true}}catch(e){}}
   const profil=await store.get('rab-galaxy-profil');
   if(profil){try{const p=JSON.parse(profil);if(p&&p.nama)S.p=Object.assign(S.p,p)}catch(e){}}
   normalisasi();
   await bacaArsip();
   isiForm();setMarkup(S.markup);renderRows();ringkas();renderArsip();
+  siap=true;
+  if(dipulihkan&&layakArsip())toast('Pekerjaan terakhir Bapak dipulihkan. Silakan dilanjutkan.');
 })();
 </script>
 </body>
