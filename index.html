@@ -119,6 +119,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .row .no{color:var(--muted);font-size:13px;padding-top:10px;text-align:right}
 .row .uraian{display:grid;gap:6px}
 .row .spek{font-size:13px;color:var(--muted);background:#111820}
+.row textarea.spek{min-height:46px;resize:vertical;padding:6px 9px;line-height:1.45}
 .mkbox{display:grid;gap:5px}
 .mkbox select{padding:7px 6px;font-size:13px}
 .mkbox input{font-size:13.5px}
@@ -581,7 +582,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 </div>
 
 <datalist id="dlSatuan">
-  <option value="Unit"><option value="Pcs"><option value="Set"><option value="Titik">
+  <option value="Unit"><option value="Lot"><option value="Pcs"><option value="Set"><option value="Titik">
   <option value="Meter"><option value="Roll"><option value="Box"><option value="Paket">
   <option value="Ls"><option value="Hari"><option value="Orang"><option value="Bulan">
 </datalist>
@@ -772,7 +773,7 @@ function renderRows(){
       <div class="no">${i+1}</div>
       <div class="uraian">
         <input class="i-nama" list="dlNama" placeholder="Nama barang / pekerjaan" value="${esc(it.nama)}">
-        <input class="spek i-spek" placeholder="Spesifikasi / keterangan (opsional)" value="${esc(it.spek)}">
+        <textarea class="spek i-spek" rows="2" placeholder="Rincian (opsional). Tekan Enter untuk baris baru">${esc(it.spek)}</textarea>
       </div>
       <div class="kat"><span class="m-lbl">Kategori</span><input class="i-kat" list="dlKategori" placeholder="Kategori" value="${esc(it.kategori)}"></div>
       <div class="qty"><span class="m-lbl">Volume</span><input class="i-qty num right" inputmode="decimal" value="${esc(it.qty)}"></div>
@@ -1071,7 +1072,7 @@ function buatDokumen(){
       const c=hitungItem(it);subK+=c.jumlah;no++;
       body+=`<tr>
         <td class="c">${no}</td>
-        <td>${esc(it.nama)}${it.spek?`<span class="spekline">${esc(it.spek)}</span>`:''}</td>
+        <td>${esc(it.nama)}${it.spek?`<span class="spekline">${esc(it.spek).replace(/\n/g,'<br>')}</span>`:''}</td>
         <td class="c">${esc(it.qty)}</td>
         <td class="c">${esc(it.satuan)}</td>
         <td class="r">${fmt(c.jual)}</td>
@@ -1220,7 +1221,7 @@ function dokumenWord(){
       const c=hitungItem(it);subK+=c.jumlah;no++;
       body+=`<tr>
         <td style="${bd};text-align:center">${no}</td>
-        <td style="${bd}">${esc(it.nama)}${it.spek?`<br><span style="font-size:8.5pt;color:#5A6774">${esc(it.spek)}</span>`:''}</td>
+        <td style="${bd}">${esc(it.nama)}${it.spek?`<br><span style="font-size:8.5pt;color:#5A6774">${esc(it.spek).replace(/\n/g,'<br>')}</span>`:''}</td>
         <td style="${bd};text-align:center">${esc(it.qty)}</td>
         <td style="${bd};text-align:center">${esc(it.satuan)}</td>
         <td style="${bd};text-align:right">${fmt(c.jual)}</td>
