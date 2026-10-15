@@ -1116,9 +1116,8 @@ function buatDokumen(){
   <div class="kop">
     <div>
       <h1>${esc(S.p.nama)}</h1>
-      <div class="alamat">${esc(S.p.tag)}${S.p.alamat?'<br>'+esc(S.p.alamat):''}</div>
+      <div class="alamat">${esc(S.p.tag)}${S.p.alamat?'<br>'+esc(S.p.alamat):''}${S.p.wa?'<br>WA '+esc(waTampil(S.p.wa)):''}${S.p.email?'<br>'+esc(S.p.email):''}</div>
     </div>
-    <div class="kontak">${S.p.wa?'WA '+esc(waTampil(S.p.wa))+'<br>':''}${esc(S.p.email||'')}</div>
   </div>
 
   <div class="judul">${inv?'INVOICE':'RENCANA ANGGARAN BIAYA'}</div>
@@ -1220,7 +1219,7 @@ function barisRincian(spek){
 function blokJasa(it){
   return !!(it.spek||'').trim()&&(isJasa(it)||/^lot$/i.test((it.satuan||'').trim()));
 }
-function namaTampil(it){return (it.nama||'').trim()||(it.kategori||'').trim()}
+function namaTampil(it){return (it.nama||'').trim()}
 function barisBlokHtml(no,it,c){
   const li=barisRincian(it.spek).map(s=>`<li>${esc(s)}</li>`).join('');
   return `<tr class="blok">
@@ -1316,10 +1315,7 @@ p{margin:0 0 6pt}
 <table width="100%"><tr>
   <td style="vertical-align:top">
     <div style="font-size:18pt;font-weight:bold">${esc(S.p.nama)}</div>
-    <div style="font-size:9pt;color:#41505F">${esc(S.p.tag)}${S.p.alamat?'<br>'+esc(S.p.alamat):''}</div>
-  </td>
-  <td style="vertical-align:top;text-align:right;font-size:9pt;color:#41505F">
-    ${S.p.wa?'WA '+esc(waTampil(S.p.wa))+'<br>':''}${esc(S.p.email||'')}
+    <div style="font-size:9pt;color:#41505F">${esc(S.p.tag)}${S.p.alamat?'<br>'+esc(S.p.alamat):''}${S.p.wa?'<br>WA '+esc(waTampil(S.p.wa)):''}${S.p.email?'<br>'+esc(S.p.email):''}</div>
   </td>
 </tr></table>
 <div style="border-bottom:2.5pt solid #15191F;margin:4pt 0 14pt"></div>
@@ -1426,10 +1422,22 @@ function buatPdf(JsPDF){
     y+=7;
   };
 
+  const tinggiItem=it=>{
+    if(blokJasa(it)){
+      set(9.5,'bold');const nm=bersih(namaTampil(it))?doc.splitTextToSize(bersih(namaTampil(it)),76):[];
+      set(8.5);const rn=barisRincian(it.spek).map(s=>doc.splitTextToSize(bersih(s),70));
+      const jr=rn.reduce((a,l)=>a+l.length,0);
+      return 1.8+nm.length*ukur(9.5)*LH+(jr?1.2+jr*ukur(8.5)*LH:0)+1.8;
+    }
+    set(9);const nm=doc.splitTextToSize(bersih(it.nama),76);
+    set(8);const sp=String(it.spek||'').split('\n').filter(s=>s.trim()).flatMap(s=>doc.splitTextToSize(bersih(s),76));
+    return 1.8+nm.length*ukur(9)*LH+(sp.length?ukur(8)*0.6+sp.length*ukur(8)*LH:0)+1.8;
+  };
+
   const barisBlok=(no,it)=>{
     const c=hitungItem(it);
     const lhN=ukur(9.5)*LH,lhR=ukur(8.5)*LH;
-    set(9.5,'bold');const nama=doc.splitTextToSize(bersih(namaTampil(it)),76);
+    set(9.5,'bold');const nama=bersih(namaTampil(it))?doc.splitTextToSize(bersih(namaTampil(it)),76):[];
     set(8.5);const rin=barisRincian(it.spek).map(s=>doc.splitTextToSize(bersih(s),70));
     const jumlahRin=rin.reduce((a,l)=>a+l.length,0);
     const tinggi=1.8+nama.length*lhN+(jumlahRin?1.2+jumlahRin*lhR:0)+1.8;
@@ -1482,8 +1490,8 @@ function buatPdf(JsPDF){
     y+=tinggi;
   };
 
-  const barisKategori=teks=>{
-    pastikan(6.5+12,true);
+  const barisKategori=(teks,perlu)=>{
+    pastikan(6.5+(perlu||12),true);
     doc.setFillColor(...KAT);doc.rect(L,y,CW,6.5,'F');
     tulis(teks,L+2,y+4.5,{size:9,style:'bold'});
     y+=6.5;
@@ -1502,9 +1510,9 @@ function buatPdf(JsPDF){
   tulis(S.p.tag,L,y+12.5,{size:9,warna:ABU2});
   let ya=y+16.8;
   if(S.p.alamat){tulis(S.p.alamat,L,ya,{size:9,warna:ABU2});ya+=4.3}
-  if(S.p.wa)tulis('WA '+waTampil(S.p.wa),R,y+7,{size:9,warna:ABU2,align:'right'});
-  if(S.p.email)tulis(S.p.email,R,y+11.5,{size:9,warna:ABU2,align:'right'});
-  y=Math.max(ya,y+12)+2;
+  if(S.p.wa){tulis('WA '+waTampil(S.p.wa),L,ya,{size:9,warna:ABU2});ya+=4.3}
+  if(S.p.email){tulis(S.p.email,L,ya,{size:9,warna:ABU2});ya+=4.3}
+  y=ya+1.5;
   doc.setDrawColor(...INK);doc.setLineWidth(0.9);doc.line(L,y,R,y);
   y+=8;
 
@@ -1544,7 +1552,7 @@ function buatPdf(JsPDF){
   }
   urut.forEach(k=>{
     const namaK=k==='—'?'Lain-lain':k;
-    if(berkategori)barisKategori(namaK);
+    if(berkategori)barisKategori(namaK,grup[k].length?tinggiItem(grup[k][0]):0);
     let sub=0;
     grup[k].forEach(it=>{no++;sub+=hitungItem(it).jumlah;barisItem(no,it)});
     if(berkategori&&urut.length>1)barisSubtotal('Subtotal '+namaK,sub);
