@@ -225,6 +225,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 #paper ul.rincian{margin:3px 0 0;padding-left:16px;font-size:9pt;color:#3A4654;line-height:1.4}
 #paper ul.rincian li{margin:0 0 1px}
 #paper tr.kat{break-after:avoid;page-break-after:avoid}
+#paper tbody.grp{break-inside:avoid;page-break-inside:avoid}
 #paper tr.kat td{break-after:avoid}
 #paper .snk{margin-top:18px;font-size:9.4pt}
 #paper .snk h3{margin:0 0 6px;font-size:10pt;font-weight:700}
@@ -1064,7 +1065,7 @@ document.getElementById('btnTambah5').onclick=()=>{for(let i=0;i<5;i++)S.items.p
 /* ========== dokumen ========== */
 function buatDokumen(){
   const h=hitung();
-  const pakai=S.items.filter(it=>it.nama||num(it.modal));
+  const pakai=S.items.filter(it=>(it.nama||'').trim()||num(it.modal)||num(it.jual));
   const grup={};const urut=[];
   pakai.forEach(it=>{
     const k=(it.kategori||'').trim()||'—';
@@ -1074,22 +1075,25 @@ function buatDokumen(){
   const berkategori=urut.length>1||urut[0]!=='—';
   let no=0,body='';
   urut.forEach(k=>{
-    if(berkategori)body+=`<tr class="kat"><td colspan="6">${esc(k==='—'?'Lain-lain':k)}</td></tr>`;
-    let subK=0;
-    grup[k].forEach(it=>{
+    const namaK=k==='—'?'Lain-lain':k;
+    let subK=0,awal='',sisa='';
+    grup[k].forEach((it,ix)=>{
       const c=hitungItem(it);subK+=c.jumlah;no++;
-      body+=blokJasa(it)?barisBlokHtml(no,it,c):`<tr>
+      const baris=blokJasa(it)?barisBlokHtml(no,it,c):`<tr>
         <td class="c">${no}</td>
         <td>${esc(it.nama)}${it.spek?`<span class="spekline">${esc(it.spek).replace(/\n/g,'<br>')}</span>`:''}</td>
         <td class="c">${esc(it.qty)}</td>
         <td class="c">${esc(it.satuan)}</td>
         <td class="r">${fmt(c.jual)}</td>
         <td class="r">${fmt(c.jumlah)}</td></tr>`;
+      if(ix===0)awal=baris;else sisa+=baris;
     });
-    if(berkategori&&urut.length>1)
-      body+=`<tr class="sub"><td colspan="5" class="r">Subtotal ${esc(k==='—'?'Lain-lain':k)}</td><td class="r">${fmt(subK)}</td></tr>`;
+    /* judul kategori dikunci bersama baris pertamanya, supaya tidak tertinggal di akhir halaman */
+    const judul=berkategori?`<tr class="kat"><td colspan="6">${esc(namaK)}</td></tr>`:'';
+    const subtot=(berkategori&&urut.length>1)?`<tr class="sub"><td colspan="5" class="r">Subtotal ${esc(namaK)}</td><td class="r">${fmt(subK)}</td></tr>`:'';
+    body+=`<tbody class="grp">${judul}${awal}</tbody><tbody>${sisa}${subtot}</tbody>`;
   });
-  if(!pakai.length)body='<tr><td colspan="6" class="c" style="padding:20px;color:#7A8794">Belum ada item.</td></tr>';
+  if(!pakai.length)body='<tbody><tr><td colspan="6" class="c" style="padding:20px;color:#7A8794">Belum ada item.</td></tr></tbody>';
 
   const metaRow=(a,b)=>b?`<div><dt>${a}</dt><dd style="margin:0">: ${esc(b)}</dd></div>`:'';
   const inv=S.jenis==='invoice';
@@ -1146,7 +1150,7 @@ function buatDokumen(){
       <th class="r" style="width:27mm">Harga satuan</th>
       <th class="r" style="width:30mm">Jumlah</th>
     </tr></thead>
-    <tbody>${body}</tbody>
+    ${body}
   </table>
 
   <div class="rekap"><table>${rekap.join('')}</table></div>
