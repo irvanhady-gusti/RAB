@@ -341,6 +341,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   <button id="btnSimpan" class="ghost">Simpan file</button>
   <button id="btnPratinjau">Pratinjau</button>
   <button id="btnWord" class="ghost">Unduh Word</button>
+  <button id="btnPdf" class="ghost">Unduh PDF</button>
   <button id="btnCetak" class="primary">Cetak / PDF</button>
 </header>
 
@@ -1324,6 +1325,269 @@ ${daftar.filter(x=>x.trim()).length?`<div style="margin-top:14pt;font-size:9.5pt
 
 </div></body></html>`;
 }
+
+/* ========== PDF langsung ==========
+   Cetak browser di iPhone selalu menambahkan alamat web, tanggal, dan nomor halaman.
+   PDF ini disusun langsung oleh aplikasi, jadi tidak ada tambahan apa pun. */
+const PDF_SRC='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+let pdfLib=null,pdfMuat=null;
+function muatPdfLib(){
+  if(pdfLib)return Promise.resolve(pdfLib);
+  if(pdfMuat)return pdfMuat;
+  pdfMuat=new Promise((res,rej)=>{
+    const ada=()=>{
+      if(window.jspdf&&window.jspdf.jsPDF){pdfLib=window.jspdf.jsPDF;res(pdfLib)}
+      else{pdfMuat=null;rej(new Error('jsPDF tidak tersedia'))}
+    };
+    if(window.jspdf){ada();return}
+    const s=document.createElement('script');
+    s.src=PDF_SRC;
+    s.onload=ada;
+    s.onerror=()=>{pdfMuat=null;rej(new Error('gagal memuat'))};
+    document.head.appendChild(s);
+  });
+  return pdfMuat;
+}
+
+function buatPdf(JsPDF){
+  const doc=new JsPDF({unit:'mm',format:'a4',orientation:'portrait'});
+  const h=hitung(),inv=S.jenis==='invoice';
+  const L=14,R=196,W=210,CW=R-L,BATAS=286;
+  const INK=[21,25,31],ABU=[85,99,111],ABU2=[60,72,84],GRS=[214,221,228],KAT=[238,242,246],SUBC=[247,249,251];
+  const ukur=pt=>pt*0.3528;
+  const LH=1.38;
+  const bersih=s=>String(s==null?'':s).replace(/[\u2212\u2013]/g,'-').trim();
+  const set=(size,style,warna)=>{doc.setFont('helvetica',style||'normal');doc.setFontSize(size);doc.setTextColor(...(warna||INK))};
+  const tulis=(s,x,yy,o)=>{o=o||{};set(o.size||9.5,o.style,o.warna);doc.text(bersih(s),x,yy,{align:o.align||'left'})};
+  const ukurTinggi=(s,lebar,size,style)=>{set(size,style);return doc.splitTextToSize(bersih(s),lebar).length*ukur(size)*LH};
+  const paragraf=(s,x,yy,lebar,o)=>{
+    o=o||{};const size=o.size||9.5;
+    set(size,o.style,o.warna);
+    const lh=ukur(size)*LH;
+    const b=doc.splitTextToSize(bersih(s),lebar);
+    b.forEach((t,i)=>doc.text(t,x,yy+ukur(size)*0.8+i*lh));
+    return b.length*lh;
+  };
+  const KOL={no:L+5,ur:L+12,vol:L+95,sat:L+111,hs:L+148,jml:R-2};
+  let y=14;
+
+  const pastikan=(tinggi,ulangi)=>{
+    if(y+tinggi>BATAS){doc.addPage();y=14;if(ulangi)headerTabel()}
+  };
+
+  const headerTabel=()=>{
+    doc.setFillColor(...INK);doc.rect(L,y,CW,7,'F');
+    set(8.5,'bold',[255,255,255]);
+    const b=y+4.8;
+    doc.text('No',KOL.no,b,{align:'center'});
+    doc.text('Uraian pekerjaan / barang',KOL.ur,b);
+    doc.text('Vol',KOL.vol,b,{align:'center'});
+    doc.text('Satuan',KOL.sat,b,{align:'center'});
+    doc.text('Harga satuan',KOL.hs,b,{align:'right'});
+    doc.text('Jumlah',KOL.jml,b,{align:'right'});
+    y+=7;
+  };
+
+  const barisItem=(no,it)=>{
+    const c=hitungItem(it);
+    const lh9=ukur(9)*LH,lh8=ukur(8)*LH;
+    set(9);const nama=doc.splitTextToSize(bersih(it.nama),76);
+    set(8);const spek=String(it.spek||'').split('\n').filter(s=>s.trim()).flatMap(s=>doc.splitTextToSize(bersih(s),76));
+    const tinggi=1.5+nama.length*lh9+(spek.length?ukur(8)*0.6+spek.length*lh8:0)+1.5;
+    pastikan(tinggi,true);
+    const yy=y+1.5+ukur(9)*0.85;
+    set(9);
+    doc.text(String(no),KOL.no,yy,{align:'center'});
+    doc.text(String(it.qty==null?'':it.qty),KOL.vol,yy,{align:'center'});
+    doc.text(bersih(it.satuan),KOL.sat,yy,{align:'center'});
+    doc.text(fmt(c.jual),KOL.hs,yy,{align:'right'});
+    doc.text(fmt(c.jumlah),KOL.jml,yy,{align:'right'});
+    nama.forEach((t,i)=>doc.text(t,KOL.ur,yy+i*lh9));
+    if(spek.length){
+      set(8,'normal',ABU);
+      const y0=yy+nama.length*lh9+ukur(8)*0.6;
+      spek.forEach((t,i)=>doc.text(t,KOL.ur,y0+i*lh8));
+    }
+    doc.setDrawColor(...GRS);doc.setLineWidth(0.2);
+    doc.line(L,y+tinggi,R,y+tinggi);
+    y+=tinggi;
+  };
+
+  const barisKategori=teks=>{
+    pastikan(6.5,true);
+    doc.setFillColor(...KAT);doc.rect(L,y,CW,6.5,'F');
+    tulis(teks,L+2,y+4.5,{size:9,style:'bold'});
+    y+=6.5;
+  };
+
+  const barisSubtotal=(label,nilai)=>{
+    pastikan(6,true);
+    doc.setFillColor(...SUBC);doc.rect(L,y,CW,6,'F');
+    tulis(label,R-36,y+4.2,{size:9,style:'bold',align:'right'});
+    tulis(fmt(nilai),R-2,y+4.2,{size:9,style:'bold',align:'right'});
+    y+=6;
+  };
+
+  /* ---- kop surat ---- */
+  tulis(S.p.nama,L,y+7,{size:17,style:'bold'});
+  tulis(S.p.tag,L,y+12.5,{size:9,warna:ABU2});
+  let ya=y+16.8;
+  if(S.p.alamat){tulis(S.p.alamat,L,ya,{size:9,warna:ABU2});ya+=4.3}
+  if(S.p.wa)tulis('WA '+waTampil(S.p.wa),R,y+7,{size:9,warna:ABU2,align:'right'});
+  if(S.p.email)tulis(S.p.email,R,y+11.5,{size:9,warna:ABU2,align:'right'});
+  y=Math.max(ya,y+12)+2;
+  doc.setDrawColor(...INK);doc.setLineWidth(0.9);doc.line(L,y,R,y);
+  y+=8;
+
+  /* ---- judul ---- */
+  tulis(inv?'INVOICE':'RENCANA ANGGARAN BIAYA',W/2,y,{size:13,style:'bold',align:'center'});
+  y+=5;
+  if(S.d.proyek){tulis(S.d.proyek,W/2,y,{size:9.5,warna:ABU,align:'center'});y+=4}
+  y+=6;
+
+  /* ---- keterangan dokumen ---- */
+  const statusTeks=S.inv.status==='lunas'?'LUNAS':S.inv.status==='dp'?'DIBAYAR SEBAGIAN':'BELUM DIBAYAR';
+  const meta=[['Nomor',inv?S.inv.nomor:S.d.nomor],['Tanggal',tglID(inv?S.inv.tanggal:S.d.tanggal)]];
+  if(inv)meta.push(['Jatuh tempo',tglID(S.inv.tempo)],['Ref. RAB',S.inv.ref],['Status',statusTeks]);
+  meta.push(['Kepada',S.d.klien],['Up.',S.d.kontak],['Pekerjaan',S.d.proyek],['Lokasi',S.d.lokasi]);
+  meta.filter(m=>m[1]).forEach(m=>{
+    tulis(m[0],L,y,{size:9.5,warna:ABU});
+    tulis(': '+m[1],L+30,y,{size:9.5});
+    y+=4.6;
+  });
+  y+=3;
+
+  const pengantar=inv?S.inv.pengantar:S.d.pengantar;
+  if(pengantar)y+=paragraf(pengantar,L,y,CW,{size:9.5,warna:ABU2})+3;
+
+  /* ---- tabel rincian ---- */
+  pastikan(20,false);
+  headerTabel();
+  const pakai=S.items.filter(it=>(it.nama||'').trim()||num(it.modal)||num(it.jual));
+  const grup={},urut=[];
+  pakai.forEach(it=>{const k=(it.kategori||'').trim()||'—';if(!grup[k]){grup[k]=[];urut.push(k)}grup[k].push(it)});
+  const berkategori=urut.length>1||urut[0]!=='—';
+  let no=0;
+  if(!pakai.length){
+    pastikan(10,false);
+    tulis('Belum ada item.',W/2,y+6,{size:9.5,warna:ABU,align:'center'});
+    y+=10;
+  }
+  urut.forEach(k=>{
+    const namaK=k==='—'?'Lain-lain':k;
+    if(berkategori)barisKategori(namaK);
+    let sub=0;
+    grup[k].forEach(it=>{no++;sub+=hitungItem(it).jumlah;barisItem(no,it)});
+    if(berkategori&&urut.length>1)barisSubtotal('Subtotal '+namaK,sub);
+  });
+
+  /* ---- rekapitulasi ---- */
+  y+=5;
+  const rk=[['Subtotal',fmt(h.sub)]];
+  if(h.disk>0){
+    rk.push(['Diskon'+(S.dMode==='persen'?' ('+num(S.dNilai)+'%)':''),'- '+fmt(h.disk)]);
+    rk.push(['Dasar pengenaan pajak',fmt(h.dpp)]);
+  }
+  if(S.ppnOn)rk.push(['PPN '+num(S.ppnPs)+'%',fmt(h.ppn)]);
+  if(inv&&h.bayar>0){
+    rk.push(['Total',fmt(h.total)]);
+    rk.push(['Pembayaran diterima','- '+fmt(h.bayar)]);
+  }
+  const labelAkhir=inv?(h.bayar>0?'SISA TAGIHAN':'JUMLAH TAGIHAN'):'TOTAL';
+  const nilaiAkhir=inv&&h.bayar>0?h.sisa:h.total;
+  pastikan(rk.length*6+14,false);
+  const xl=R-88;
+  rk.forEach(r=>{
+    tulis(r[0],xl+2,y+4.2,{size:9.5});
+    tulis(r[1],R-2,y+4.2,{size:9.5,align:'right'});
+    doc.setDrawColor(...GRS);doc.setLineWidth(0.2);doc.line(xl,y+5.4,R,y+5.4);
+    y+=5.4;
+  });
+  doc.setDrawColor(...INK);doc.setLineWidth(0.6);doc.line(xl,y,R,y);
+  y+=5.5;
+  tulis(labelAkhir,xl+2,y,{size:11,style:'bold'});
+  tulis('Rp '+fmt(nilaiAkhir),R-2,y,{size:11,style:'bold',align:'right'});
+  y+=8;
+
+  /* ---- terbilang ---- */
+  const tb='Terbilang: '+terbilang(nilaiAkhir);
+  const hTb=ukurTinggi(tb,CW-5,9.5,'italic');
+  pastikan(hTb+6,false);
+  doc.setFillColor(...INK);doc.rect(L,y-0.5,0.9,hTb+1,'F');
+  paragraf(tb,L+3,y,CW-5,{size:9.5,style:'italic',warna:ABU2});
+  y+=hTb+5;
+
+  /* ---- rekening (invoice saja) ---- */
+  if(inv&&(S.p.bank||S.p.rek||S.p.an)){
+    const bank=[S.p.bank,S.p.rek?'No. rek '+S.p.rek:'',S.p.an?'a.n. '+S.p.an:''].filter(Boolean).join('  -  ');
+    const hb=ukurTinggi(bank,CW-6,9.5)+11;
+    pastikan(hb+4,false);
+    doc.setDrawColor(...INK);doc.setLineWidth(0.3);doc.rect(L,y,CW,hb);
+    tulis('Pembayaran ditransfer ke',L+3,y+4.8,{size:9,style:'bold'});
+    paragraf(bank,L+3,y+6.5,CW-6,{size:9.5});
+    y+=hb+4;
+  }
+
+  /* ---- syarat ---- */
+  const daftar=(inv?S.snkInv:S.snk).filter(x=>x.trim());
+  if(daftar.length){
+    pastikan(10,false);
+    tulis(inv?'Syarat pembayaran':'Syarat dan ketentuan',L,y+3.5,{size:10,style:'bold'});
+    y+=6;
+    daftar.forEach((s,i)=>{
+      const t=(i+1)+'. '+s;
+      const hs=ukurTinggi(t,CW-4,9.4);
+      pastikan(hs+1,false);
+      paragraf(t,L+1,y,CW-4,{size:9.4,warna:ABU2});
+      y+=hs+0.6;
+    });
+    y+=4;
+  }
+
+  /* ---- tanda tangan dengan stempel ---- */
+  const tglDok=inv?S.inv.tanggal:S.d.tanggal;
+  const kotaTgl=(S.p.kota||'')+(tglDok?', '+tglID(tglDok):'');
+  pastikan(56,false);
+  const cx=R-35,sw=26;
+  tulis(kotaTgl,cx,y+4,{size:10,align:'center'});
+  tulis('Hormat kami,',cx,y+9,{size:10,align:'center'});
+  tulis(S.p.nama,cx,y+14,{size:10,style:'bold',align:'center'});
+  doc.addImage(STEMPEL_SRC,'PNG',cx-sw/2,y+16,sw,sw);
+  const garisY=y+16+sw+2;
+  doc.setDrawColor(...INK);doc.setLineWidth(0.3);doc.line(R-70,garisY,R,garisY);
+  tulis(PENANDA.nama,cx,garisY+5,{size:10,style:'bold',align:'center'});
+  tulis(S.p.jab||'',cx,garisY+9.5,{size:9,warna:ABU,align:'center'});
+  y=garisY+12;
+
+  return doc;
+}
+
+async function unduhPdf(){
+  let JsPDF;
+  try{JsPDF=await muatPdfLib()}
+  catch(e){toast('PDF langsung belum bisa dibuat. Periksa koneksi, atau pakai Cetak / PDF.');return}
+  let doc;
+  try{doc=buatPdf(JsPDF)}
+  catch(e){toast('Gagal menyusun PDF: '+(e&&e.message?e.message:e));return}
+  const blob=doc.output('blob');
+  const nama=namaFile()+'.pdf';
+  const file=new File([blob],nama,{type:'application/pdf'});
+  try{
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      await navigator.share({files:[file],title:nama});
+      arsipOtomatis();return;
+    }
+  }catch(e){if(e&&e.name==='AbortError')return}
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=nama;a.rel='noopener';a.style.display='none';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{a.remove();URL.revokeObjectURL(url)},3000);
+  arsipOtomatis();
+  toast('PDF '+nama+' dibuat.');
+}
+document.getElementById('btnPdf').onclick=unduhPdf;
+muatPdfLib().catch(()=>{});   // siapkan lebih dulu agar tombol tidak menunggu saat ditekan
 
 /* ========== simpan / muat file ========== */
 const namaFile=()=>(S.jenis==='invoice'?'INVOICE-':'RAB-')+
