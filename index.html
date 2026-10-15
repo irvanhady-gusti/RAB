@@ -219,6 +219,13 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 #paper[data-rapat="1"] .stempel img{width:27mm}
 #paper[data-rapat="2"] .stempel{height:22mm}
 #paper[data-rapat="2"] .stempel img{width:24mm}
+#paper tr.blok>td{vertical-align:middle}
+#paper tr.blok{break-inside:avoid}
+#paper tr.blok>td.c{text-align:center}
+#paper ul.rincian{margin:3px 0 0;padding-left:16px;font-size:9pt;color:#3A4654;line-height:1.4}
+#paper ul.rincian li{margin:0 0 1px}
+#paper tr.kat{break-after:avoid;page-break-after:avoid}
+#paper tr.kat td{break-after:avoid}
 #paper .snk{margin-top:18px;font-size:9.4pt}
 #paper .snk h3{margin:0 0 6px;font-size:10pt;font-weight:700}
 #paper .snk ol{margin:0;padding-left:18px}
@@ -1071,7 +1078,7 @@ function buatDokumen(){
     let subK=0;
     grup[k].forEach(it=>{
       const c=hitungItem(it);subK+=c.jumlah;no++;
-      body+=`<tr>
+      body+=blokJasa(it)?barisBlokHtml(no,it,c):`<tr>
         <td class="c">${no}</td>
         <td>${esc(it.nama)}${it.spek?`<span class="spekline">${esc(it.spek).replace(/\n/g,'<br>')}</span>`:''}</td>
         <td class="c">${esc(it.qty)}</td>
@@ -1205,6 +1212,37 @@ document.getElementById('ovPrint').onclick=()=>{
   arsipOtomatis();siapCetak();sesuaikanHalaman();setTimeout(()=>window.print(),120);
 };
 
+/* ---- rincian jasa per lot: poin rapi, nominal di tengah ---- */
+const RINCIAN_AWALAN=/^\s*(?:[•·\-–*]\s*|\d+[.)]\s+)/;
+function barisRincian(spek){
+  return String(spek||'').split('\n').map(s=>s.replace(RINCIAN_AWALAN,'').trim()).filter(Boolean);
+}
+function blokJasa(it){
+  return !!(it.spek||'').trim()&&(isJasa(it)||/^lot$/i.test((it.satuan||'').trim()));
+}
+function namaTampil(it){return (it.nama||'').trim()||(it.kategori||'').trim()}
+function barisBlokHtml(no,it,c){
+  const li=barisRincian(it.spek).map(s=>`<li>${esc(s)}</li>`).join('');
+  return `<tr class="blok">
+        <td class="c">${no}</td>
+        <td><b>${esc(namaTampil(it))}</b>${li?`<ul class="rincian">${li}</ul>`:''}</td>
+        <td class="c">${esc(it.qty)}</td>
+        <td class="c">${esc(it.satuan)}</td>
+        <td class="c">${fmt(c.jual)}</td>
+        <td class="c">${fmt(c.jumlah)}</td></tr>`;
+}
+function barisBlokWord(no,it,c,bd){
+  const sel=`${bd};vertical-align:middle;text-align:center`;
+  const li=barisRincian(it.spek).map(s=>`<li style="margin-bottom:2pt">${esc(s)}</li>`).join('');
+  return `<tr>
+        <td style="${sel}">${no}</td>
+        <td style="${bd}"><b>${esc(namaTampil(it))}</b>${li?`<ul style="margin:3pt 0 0 0;padding-left:14pt">${li}</ul>`:''}</td>
+        <td style="${sel}">${esc(it.qty)}</td>
+        <td style="${sel}">${esc(it.satuan)}</td>
+        <td style="${sel}">${fmt(c.jual)}</td>
+        <td style="${sel}">${fmt(c.jumlah)}</td></tr>`;
+}
+
 /* ========== dokumen Word (.doc, bisa diedit di Word) ========== */
 function dokumenWord(){
   const h=hitung();
@@ -1220,7 +1258,7 @@ function dokumenWord(){
     let subK=0;
     grup[k].forEach(it=>{
       const c=hitungItem(it);subK+=c.jumlah;no++;
-      body+=`<tr>
+      body+=blokJasa(it)?barisBlokWord(no,it,c,bd):`<tr>
         <td style="${bd};text-align:center">${no}</td>
         <td style="${bd}">${esc(it.nama)}${it.spek?`<br><span style="font-size:8.5pt;color:#5A6774">${esc(it.spek).replace(/\n/g,'<br>')}</span>`:''}</td>
         <td style="${bd};text-align:center">${esc(it.qty)}</td>
@@ -1368,7 +1406,7 @@ function buatPdf(JsPDF){
     b.forEach((t,i)=>doc.text(t,x,yy+ukur(size)*0.8+i*lh));
     return b.length*lh;
   };
-  const KOL={no:L+5,ur:L+12,vol:L+95,sat:L+111,hs:L+148,jml:R-2};
+  const KOL={no:L+5,ur:L+12,vol:L+95,sat:L+111,hs:L+148,jml:R-2,volC:L+95,satC:L+111,hsC:L+135,jmlC:L+173};
   let y=14;
 
   const pastikan=(tinggi,ulangi)=>{
@@ -1388,7 +1426,38 @@ function buatPdf(JsPDF){
     y+=7;
   };
 
+  const barisBlok=(no,it)=>{
+    const c=hitungItem(it);
+    const lhN=ukur(9.5)*LH,lhR=ukur(8.5)*LH;
+    set(9.5,'bold');const nama=doc.splitTextToSize(bersih(namaTampil(it)),76);
+    set(8.5);const rin=barisRincian(it.spek).map(s=>doc.splitTextToSize(bersih(s),70));
+    const jumlahRin=rin.reduce((a,l)=>a+l.length,0);
+    const tinggi=1.8+nama.length*lhN+(jumlahRin?1.2+jumlahRin*lhR:0)+1.8;
+    pastikan(tinggi,true);
+    set(9.5,'bold');
+    nama.forEach((t,i)=>doc.text(t,KOL.ur,y+1.8+ukur(9.5)*0.85+i*lhN));
+    let yr=y+1.8+nama.length*lhN+1.2+ukur(8.5)*0.85;
+    set(8.5,'normal',ABU2);
+    rin.forEach(lines=>{
+      lines.forEach((t,i)=>{
+        if(i===0)doc.text('•',KOL.ur+0.6,yr);
+        doc.text(t,KOL.ur+3.6,yr);
+        yr+=lhR;
+      });
+    });
+    const mid=y+tinggi/2+ukur(9.5)*0.35;
+    set(9.5,'normal',INK);
+    doc.text(String(no),KOL.no,mid,{align:'center'});
+    doc.text(String(it.qty==null?'':it.qty),KOL.volC,mid,{align:'center'});
+    doc.text(bersih(it.satuan),KOL.satC,mid,{align:'center'});
+    doc.text(fmt(c.jual),KOL.hsC,mid,{align:'center'});
+    doc.text(fmt(c.jumlah),KOL.jmlC,mid,{align:'center'});
+    doc.setDrawColor(...GRS);doc.setLineWidth(0.2);doc.line(L,y+tinggi,R,y+tinggi);
+    y+=tinggi;
+  };
+
   const barisItem=(no,it)=>{
+    if(blokJasa(it))return barisBlok(no,it);
     const c=hitungItem(it);
     const lh9=ukur(9)*LH,lh8=ukur(8)*LH;
     set(9);const nama=doc.splitTextToSize(bersih(it.nama),76);
@@ -1414,7 +1483,7 @@ function buatPdf(JsPDF){
   };
 
   const barisKategori=teks=>{
-    pastikan(6.5,true);
+    pastikan(6.5+12,true);
     doc.setFillColor(...KAT);doc.rect(L,y,CW,6.5,'F');
     tulis(teks,L+2,y+4.5,{size:9,style:'bold'});
     y+=6.5;
