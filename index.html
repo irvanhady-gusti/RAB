@@ -390,8 +390,6 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
       <div class="tools">
         <button id="btnTambah">+ Tambah baris</button>
         <button id="btnTambah5" class="ghost">+ 5 baris</button>
-        <button id="btnContoh" class="ghost">Isi contoh CCTV</button>
-        <button id="btnKosong" class="ghost">Kosongkan</button>
       </div>
     </section>
 
@@ -1053,24 +1051,6 @@ function isiForm(){
 /* ========== tombol baris ========== */
 document.getElementById('btnTambah').onclick=()=>{S.items.push(blank());renderRows();simpan()};
 document.getElementById('btnTambah5').onclick=()=>{for(let i=0;i<5;i++)S.items.push(blank());renderRows();simpan()};
-document.getElementById('btnKosong').onclick=()=>{
-  if(!confirm('Kosongkan semua baris?'))return;
-  S.items=[blank(),blank(),blank()];renderRows();ringkas();simpan();
-};
-document.getElementById('btnContoh').onclick=()=>{
-  S.items=[
-    {id:uid(),kategori:'Perangkat Utama',nama:'Kamera IP 4MP Outdoor',spek:'IR 30m, IP67, PoE',qty:8,satuan:'Unit',modal:850000,markup:null,mode:'global',jual:0},
-    {id:uid(),kategori:'Perangkat Utama',nama:'NVR 8 Channel',spek:'Support 4K, 1 bay HDD',qty:1,satuan:'Unit',modal:1750000,markup:null,mode:'global',jual:0},
-    {id:uid(),kategori:'Perangkat Utama',nama:'Hard Disk Surveillance 2TB',spek:'Khusus perekaman 24 jam',qty:1,satuan:'Unit',modal:1150000,markup:35,mode:'mk',jual:0},
-    {id:uid(),kategori:'Material Instalasi',nama:'Kabel UTP Cat6 Outdoor',spek:'Roll 305 meter, tembaga murni',qty:2,satuan:'Roll',modal:1250000,markup:null,mode:'global',jual:0},
-    {id:uid(),kategori:'Material Instalasi',nama:'Konektor RJ45 Cat6',spek:'Isi 50 pcs per box',qty:1,satuan:'Box',modal:120000,markup:null,mode:'global',jual:0},
-    {id:uid(),kategori:'Material Instalasi',nama:'Pipa conduit + klem',spek:'Pelindung kabel jalur luar',qty:60,satuan:'Meter',modal:9000,markup:null,mode:'none',jual:0},
-    {id:uid(),kategori:'Jasa Instalasi',nama:'Jasa instalasi per titik kamera',spek:'Pemasangan, penarikan kabel, terminasi',qty:8,satuan:'Titik',modal:0,markup:null,mode:'manual',jual:200000},
-    {id:uid(),kategori:'Jasa Konfigurasi',nama:'Jasa setting NVR & akses HP',spek:'Konfigurasi rekaman dan remote view',qty:1,satuan:'Ls',modal:0,markup:null,mode:'manual',jual:500000}
-  ];
-  S.d.proyek=S.d.proyek||'Pemasangan CCTV 8 Titik';
-  isiForm();renderRows();ringkas();simpan();
-};
 
 /* ========== dokumen ========== */
 function buatDokumen(){
